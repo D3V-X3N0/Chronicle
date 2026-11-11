@@ -6,7 +6,7 @@ The main path is **M1 -> M2 -> M3 -> M5 -> M6**. M4 builds on M2's capture contr
 
 ## Evaluation prerelease
 
-The owner-authorised [first alpha](releases/v0.1.0-alpha.1.md), tracked in [#8](https://github.com/D3V-X3N0/Chronicle/issues/8), packages completed M1/M2 for disposable evaluation. Publication is pending: local checks passed at `19e67b1`, but repeated GitHub Actions internal startup errors prevented candidate CI from creating jobs. No release/tag is published. It includes no recovery or expanded event family. This early prerelease does not complete M3, M5 or M6; the original functional and operational gates remain requirements for the first stable release.
+The owner-authorised [first alpha](releases/v0.1.0-alpha.1.md), tracked in [#8](https://github.com/D3V-X3N0/Chronicle/issues/8), packages completed M1/M2 for disposable evaluation. It includes no recovery or expanded event family. This early prerelease does not complete M3, M5 or M6; the original functional and operational gates remain requirements for the first stable release.
 
 ## First development task
 

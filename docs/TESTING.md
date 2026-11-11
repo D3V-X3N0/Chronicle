@@ -4,7 +4,7 @@ Status: M1 and M2 unit, database, crash, packaged-native, investigation, packet/
 
 ## Alpha release evidence
 
-The [first alpha candidate notes](releases/v0.1.0-alpha.1.md) define the intended scope. Publication is blocked; no release/tag has been created. Each published alpha includes `VALIDATION.md` naming the exact source commit, distributable SHA-256, local commands/results and Linux/Windows CI links, alongside `SHA256SUMS`. This keeps release evidence attached to the tested artifact. M2 measurements below remain tied to their original revisions; packaging the alpha does not extend those results into production-capacity or recovery claims.
+The [first alpha notes](releases/v0.1.0-alpha.1.md) define the published scope. [v0.1.0-alpha.1](https://github.com/D3V-X3N0/Chronicle/releases/tag/v0.1.0-alpha.1) was published on 11 November 2026 from the annotated tag at `19e67b198a9e149e903287940bdd51f20ecea974`. Each published alpha includes `VALIDATION.md` naming the exact source commit, distributable SHA-256, local commands/results and Linux/Windows CI links, alongside `SHA256SUMS`. This keeps release evidence attached to the tested artifact. M2 measurements below remain tied to their original revisions; packaging the alpha does not extend those results into production-capacity or recovery claims.
 
 Candidate `19e67b198a9e149e903287940bdd51f20ecea974` passed locally on Windows 11,
 Oracle JDK 25.0.1, with `clean build paperIntegrationTest paperPacketTest
@@ -19,14 +19,26 @@ independent SQL assertions passed after both sessions. License/notice bytes and
 expanded descriptor were independently checked. An initial notice-copy Gradle DSL
 syntax error was corrected before this successful candidate build.
 
-Candidate CI remains **unverified**. [Run 43096475204](https://github.com/D3V-X3N0/Chronicle/actions/runs/43096475204),
-its retry, and a [fresh dispatch 43097586644](https://github.com/D3V-X3N0/Chronicle/actions/runs/43097586644)
-all ended in `startup_failure` before creating any jobs. Their annotations report
-unexpected internal GitHub errors. These are neither passing checks nor test
-failures. The ordinary [push run](https://github.com/D3V-X3N0/Chronicle/actions/runs/43096474587)
-remained queued at the last check. [Issue #8](https://github.com/D3V-X3N0/Chronicle/issues/8)
-stays open until candidate CI, tagged publication and downloaded-asset integrity
-verification pass. M2's earlier passing CI remains historical evidence below.
+**Passed on Linux and Windows:** [runtime run 43106871582](https://github.com/D3V-X3N0/Chronicle/actions/runs/43106871582)
+built the exact tagged commit and passed all 68 tests plus both real Paper harnesses
+on both operating systems. Downloaded JUnit XML confirmed zero failures/errors/skips.
+The ordinary [branch push build](https://github.com/D3V-X3N0/Chronicle/actions/runs/43106873582)
+also passed on both OS runners.
+
+The Windows CI JAR is byte-for-byte identical to the published JAR. The Linux JAR's
+SHA-256 is `a3a1e5f68b6031fd7255360bbfb35450f886e37ff41f12f1d001001f2e442b5e`;
+comparing all ZIP entry contents found only `META-INF/LICENSE` differed, with
+identical text after CRLF/LF normalization. No broader cross-platform reproducibility
+guarantee is claimed. All three release assets were downloaded before publication
+and anonymously after publication, and matched the staged bytes and checksums.
+The public release is a prerelease, not a stable/latest release. [Issue #8](https://github.com/D3V-X3N0/Chronicle/issues/8)
+tracks completion; M3/M5/M6 remain pending.
+
+Earlier [run 43096475204](https://github.com/D3V-X3N0/Chronicle/actions/runs/43096475204),
+its retry, and the initial [dispatch 43097586644](https://github.com/D3V-X3N0/Chronicle/actions/runs/43097586644)
+ended in `startup_failure` without creating jobs. Their annotations reported
+unexpected internal GitHub errors. A fresh dispatch from the release branch tested
+the unchanged candidate successfully; no test gate was waived.
 
 ## Current M2 evidence
 

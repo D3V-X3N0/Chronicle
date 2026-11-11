@@ -1,6 +1,6 @@
 # Architecture
 
-Status: M1 capture/storage and M2 investigation are implemented, 11 November 2026. Qualified stone/air adapters, bounded reconciliation/writing, schema 2, bounded readers, stable cursors, inspection and safe presentation reload exist. Broader codecs and recovery designs below remain proposals. [Investigation](INVESTIGATION.md), [capture qualification](CAPTURE_QUALIFICATION.md), [storage operations](STORAGE.md) and [test evidence](TESTING.md#current-m2-evidence) define actual behaviour in the [unpublished alpha candidate](releases/v0.1.0-alpha.1.md). Stable-release gates remain unmet.
+Status: M1 capture/storage and M2 investigation are implemented, 11 November 2026. Qualified stone/air adapters, bounded reconciliation/writing, schema 2, bounded readers, stable cursors, inspection and safe presentation reload exist. Broader codecs and recovery designs below remain proposals. [Investigation](INVESTIGATION.md), [capture qualification](CAPTURE_QUALIFICATION.md), [storage operations](STORAGE.md) and [test evidence](TESTING.md#current-m2-evidence) define actual behaviour in the [first evaluation alpha](releases/v0.1.0-alpha.1.md). Stable-release gates remain unmet.
 
 ## Repository evidence and decisions
 
