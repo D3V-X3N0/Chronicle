@@ -85,4 +85,16 @@ class ChronicleConfigTest {
         values.put("storage.max-records", 10); values.put("storage.batch-records", 11);
         assertThrows(IllegalArgumentException.class, () -> ChronicleConfig.from(values));
     }
+    @Test void reloadValidatesAllSettingsBeforeApplyingPresentationOnly() {
+        var current = new ChronicleConfig(true);
+        var values = validConfig(false); values.put("lookup.page-size", 2);
+        var changed = current.runtimeReload(ChronicleConfig.from(values));
+        assertEquals(false, changed.showRuntimeDetails()); assertEquals(2, changed.pageSize());
+        values.put("storage.max-records", 20_000);
+        assertThrows(IllegalArgumentException.class, () -> current.runtimeReload(ChronicleConfig.from(values)));
+        assertEquals(new ChronicleConfig(true), current);
+        for (Object invalid : java.util.List.of(0, 51, "10")) {
+            values.put("lookup.page-size", invalid); assertThrows(IllegalArgumentException.class, () -> ChronicleConfig.from(values));
+        }
+    }
 }

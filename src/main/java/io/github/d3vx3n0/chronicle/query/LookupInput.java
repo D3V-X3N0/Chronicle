@@ -69,7 +69,7 @@ public record LookupInput(List<String> players, String world, long from, long to
                 area = new LookupFilter.Area(x, null, z, radius);
             }
             return new LookupInput(values.containsKey("player") ? List.of(values.get("player").split(",", -1)) : List.of(), world, from, to, actions, area);
-        } catch (NumberFormatException | DateTimeParseException error) { throw new IllegalArgumentException("Invalid number or UTC timestamp", error); }
+        } catch (NumberFormatException | DateTimeParseException | ArithmeticException error) { throw new IllegalArgumentException("Invalid number or UTC timestamp", error); }
     }
     private static long utc(String text) {
         if (!text.endsWith("Z")) throw new IllegalArgumentException("Timestamps must use UTC Z");

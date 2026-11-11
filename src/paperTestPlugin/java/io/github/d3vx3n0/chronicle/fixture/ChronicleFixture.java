@@ -211,6 +211,17 @@ public final class ChronicleFixture extends JavaPlugin implements Listener {
         thread.join(1000);
         require(!thread.isAlive() && failure.get() instanceof IllegalStateException
                 && failure.get().getMessage().contains("server thread"), "off-thread capture refuses before touching event/world");
+        var investigation = org.bukkit.event.HandlerList.getRegisteredListeners(chronicle).stream()
+                .map(org.bukkit.plugin.RegisteredListener::getListener)
+                .filter(listener -> listener.getClass().getSimpleName().equals("InvestigationController")).findFirst().orElseThrow();
+        failure.set(null);
+        Thread queryThread = Thread.ofPlatform().name("chronicle-fixture-query-thread-guard").start(() -> {
+            try { investigation.getClass().getMethod("interact", org.bukkit.event.player.PlayerInteractEvent.class).invoke(investigation, new Object[] {null}); }
+            catch (ReflectiveOperationException exception) { failure.set(exception.getCause()); }
+        });
+        queryThread.join(1000);
+        require(!queryThread.isAlive() && failure.get() instanceof IllegalStateException
+                && failure.get().getMessage().contains("server thread"), "off-thread inspection refuses before touching event/world");
     }
 
     private static CommandSender sender(List<String> messages, boolean permission) {

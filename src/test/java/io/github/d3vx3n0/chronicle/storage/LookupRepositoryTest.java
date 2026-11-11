@@ -76,6 +76,17 @@ class LookupRepositoryTest {
             assertEquals(List.of(ACTOR), oldName.filter().actors()); assertEquals(1005, oldName.boundary());
             var newName = reader.first(new LookupInput(List.of("Renamed"), WORLD.toString(), 0, 1000, Set.of("BREAK"), null), 1, () -> false, deadline());
             assertEquals(1005, newName.rows().getFirst().id());
+            var progress = new java.util.concurrent.atomic.AtomicInteger();
+            var expensive = new LookupFilter(List.of(), null, 900, 901, Set.of("BREAK"), null);
+            assertThrows(SQLException.class, () -> reader.next(expensive, 1005, Long.MAX_VALUE, 10,
+                    () -> progress.incrementAndGet() > 2, deadline()));
+            assertTrue(progress.get() > 2, "cancellation must interrupt running SQL, not only admission");
+            assertEquals(1005, reader.next(newName.filter(), 1005, Long.MAX_VALUE, 1, () -> false, deadline()).rows().getFirst().id(),
+                    "transaction cleanup permits reuse after an interrupted query");
+            var offThread = new java.util.concurrent.atomic.AtomicReference<Throwable>();
+            var thread = new Thread(() -> { try { reader.next(expensive, 1005, Long.MAX_VALUE, 1, () -> false, deadline()); }
+                catch (Throwable error) { offThread.set(error); } });
+            thread.start(); thread.join(); assertInstanceOf(IllegalStateException.class, offThread.get());
         }
     }
     @Test void ambiguityUnknownIdentityCancellationAndUnsupportedVersionsAreExplicit() throws Exception {

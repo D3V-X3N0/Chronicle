@@ -1,5 +1,7 @@
 # M1 development bounds, not throughput promises. Changes require restart.
 config-version: 1
+lookup:
+  page-size: 10
 diagnostics:
   show-runtime-details: true
 storage:

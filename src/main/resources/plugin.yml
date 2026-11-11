@@ -2,15 +2,24 @@ name: Chronicle
 version: '${version}'
 main: io.github.d3vx3n0.chronicle.bootstrap.ChroniclePlugin
 api-version: '26.3'
-description: Development build with qualified stone/air logging and SQLite history. No lookup or recovery.
+description: Development build with qualified stone/air history and bounded investigation. No recovery.
 author: DEV_X3N0
 website: https://github.com/D3V-X3N0/Chronicle
 commands:
   chronicle:
-    description: Show Chronicle's development status.
-    usage: /chronicle status
+    description: Investigate committed block history and view Chronicle status.
+    usage: /chronicle <inspect|lookup|status|reload>
     # The executor checks permissions so trusted console access can bypass the player default=false.
 permissions:
+  chronicle.inspect:
+    description: Toggle read-only block inspection.
+    default: false
+  chronicle.lookup:
+    description: Query committed block history.
+    default: false
+  chronicle.reload:
+    description: Reload validated presentation settings.
+    default: false
   chronicle.status:
     description: View Chronicle version and implementation status.
     default: false

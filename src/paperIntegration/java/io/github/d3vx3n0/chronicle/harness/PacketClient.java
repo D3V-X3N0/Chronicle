@@ -26,6 +26,7 @@ final class PacketClient implements AutoCloseable {
     private int sequence;
     private int lastTeleport = -1;
     private ByteArrayOutputStream coalesced;
+    private final java.util.ArrayDeque<String> messages = new java.util.ArrayDeque<>();
 
     PacketClient(int port) throws IOException {
         socket = new Socket(InetAddress.getLoopbackAddress(), port);
@@ -68,6 +69,13 @@ final class PacketClient implements AutoCloseable {
                         default -> { /* Registry/tag contents are irrelevant to the fixed test actions. */ }
                     }
                 } else {
+                    // Test-only observation of UTF-8 literals in network component payloads. This is
+                    // not a general chat decoder; only fixed Chronicle markers are used as the oracle.
+                    String payload = new String(bytes, StandardCharsets.UTF_8);
+                    if (payload.contains("Lookup") || payload.contains("Inspection") || payload.contains("Committed history")
+                            || payload.contains("chronicle.lookup") || payload.contains("UNKNOWN")) {
+                        synchronized (messages) { if (messages.size() == 128) messages.removeFirst(); messages.addLast(payload); }
+                    }
                     switch (id) {
                         case 11 -> send(11, out -> out.writeFloat(10));
                         case 32 -> throw new IOException("Play disconnected: " + new String(bytes, StandardCharsets.UTF_8));
@@ -97,12 +105,18 @@ final class PacketClient implements AutoCloseable {
     }
 
     void place() throws IOException {
+        interact(79, 0);
+    }
+    void interact(int y, int hand) throws IOException {
         send(66, out -> {
-            varInt(out, 0); out.writeLong(position(0, 79, 0)); varInt(out, 1);
+            varInt(out, hand); out.writeLong(position(0, y, 0)); varInt(out, 1);
             out.writeFloat(.5f); out.writeFloat(1); out.writeFloat(.5f);
             out.writeBoolean(false); out.writeBoolean(false); varInt(out, ++sequence);
         });
     }
+    void clearMessages() { synchronized (messages) { messages.clear(); } }
+    boolean received(String text) { synchronized (messages) { return messages.stream().anyMatch(s -> s.contains(text)); } }
+    String messageDiagnostics() { synchronized (messages) { return messages.toString(); } }
 
     void dig(int action) throws IOException {
         send(41, out -> { varInt(out, action); out.writeLong(position(0, 80, 0));

@@ -1,6 +1,9 @@
 package io.github.d3vx3n0.chronicle.bootstrap;
 
 import io.github.d3vx3n0.chronicle.command.ChronicleCommand;
+import io.github.d3vx3n0.chronicle.command.InvestigationController;
+import io.github.d3vx3n0.chronicle.command.ReloadController;
+import io.github.d3vx3n0.chronicle.query.QueryService;
 import io.github.d3vx3n0.chronicle.config.ChronicleConfig;
 import io.github.d3vx3n0.chronicle.capture.PaperBlockCapture;
 import io.github.d3vx3n0.chronicle.storage.HistoryWriter;
@@ -15,9 +18,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class ChroniclePlugin extends JavaPlugin {
     private HistoryWriter writer;
     private PaperBlockCapture capture;
+    private ChronicleConfig settings;
+    private InvestigationController investigation;
+    private ReloadController reload;
     @Override
     public void onEnable() {
-        final ChronicleConfig settings;
         try {
             saveDefaultConfig();
             var yaml = new YamlConfiguration();
@@ -42,13 +47,19 @@ public final class ChroniclePlugin extends JavaPlugin {
         String runtime = getServer().getVersion() + " / Java " + Runtime.version();
         writer = new HistoryWriter(limits, () -> new SqliteStore(database, limits.busyMillis()), runtime, getLogger()::warning);
         capture = new PaperBlockCapture(writer, limits.reconciliationRecords(), dataVersion());
-        var executor = new ChronicleCommand(getPluginMeta().getVersion(), settings, getServer(), writer::status, capture::pending, capture::observedSequence);
+        var queries = new QueryService(database, getLogger()::warning);
+        investigation = new InvestigationController(queries, getServer(), () -> settings, writer::status, capture::pending);
+        reload = new ReloadController(getDataFolder().toPath().resolve("config.yml"), () -> settings, value -> settings = value);
+        var executor = new ChronicleCommand(getPluginMeta().getVersion(), () -> settings, getServer(), writer::status,
+                capture::pending, capture::observedSequence, investigation, reload, queries);
         var command = Objects.requireNonNull(getCommand("chronicle"), "Missing chronicle command in plugin.yml");
         command.setExecutor(executor);
         command.setTabCompleter(executor);
         getServer().getPluginManager().registerEvents(capture, this);
+        getServer().getPluginManager().registerEvents(investigation, this);
         getServer().getScheduler().runTaskTimer(this, capture::tick, 1, 1);
-        getLogger().warning("Chronicle starting SQLite asynchronously. Qualified capture: stone/air only; inspection and rollback NOT IMPLEMENTED.");
+        getServer().getScheduler().runTaskTimer(this, () -> { investigation.tick(); reload.tick(); }, 1, 1);
+        getLogger().warning("Chronicle starting SQLite asynchronously. Qualified capture: stone/air only; investigation available when READY; recovery NOT IMPLEMENTED.");
     }
 
     @SuppressWarnings("deprecation") // Pinned Paper exposes data version only through this public legacy accessor.
@@ -56,6 +67,8 @@ public final class ChroniclePlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (reload != null) reload.close();
+        if (investigation != null) investigation.close();
         if (capture != null) capture.stop();
         if (writer != null) {
             boolean clean = writer.stop();

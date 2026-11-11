@@ -26,6 +26,8 @@ class LookupTest {
                 new String[] {"from:2026-02-01T00:00:00Z", "to:2026-01-01T00:00:00Z"}, new String[] {"world:" + "a".repeat(1024)})) {
             assertThrows(IllegalArgumentException.class, () -> LookupInput.parse(args, 10_000_000, null));
         }
+        assertThrows(IllegalArgumentException.class, () -> LookupInput.parse(new String[] {
+                "from:+999999999-01-01T00:00:00Z", "to:+999999999-01-02T00:00:00Z"}, 10_000_000, null));
     }
     @Test void acceptsUtcHalfOpenRangeAndConsoleOrigin() {
         var input = LookupInput.parse(new String[] {"from:2026-01-01T00:00:00Z", "to:2026-01-02T00:00:00Z", "world:w", "radius:0", "origin:-16,-17"}, 1, null);

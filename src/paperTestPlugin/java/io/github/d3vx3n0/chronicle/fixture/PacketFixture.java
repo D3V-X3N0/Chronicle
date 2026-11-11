@@ -23,11 +23,45 @@ final class PacketFixture implements Listener {
     private final List<String> attempts = new ArrayList<>();
     private String scenario = "idle";
     private int startTick;
+    private org.bukkit.permissions.PermissionAttachment permissions;
 
     PacketFixture(JavaPlugin plugin) { this.plugin = plugin; }
 
     boolean command(CommandSender sender, String[] args) {
         if (!(sender instanceof ConsoleCommandSender) || args.length != 2) return false;
+        if (args[0].equals("fence")) {
+            Objects.requireNonNull(Bukkit.getPlayerExact("ChronicleTest")).sendMessage(net.kyori.adventure.text.Component.text("Lookup fence " + args[1]));
+            return true;
+        }
+        if (args[0].equals("inspect")) {
+            var player = Objects.requireNonNull(Bukkit.getPlayerExact("ChronicleTest"));
+            if (permissions == null) permissions = player.addAttachment(plugin);
+            permissions.setPermission("chronicle.inspect", true);
+            permissions.setPermission("chronicle.lookup", true);
+            player.performCommand("chronicle inspect");
+            plugin.getLogger().info("INSPECT_TOGGLED " + args[1]); return true;
+        }
+        if (args[0].equals("lookup")) {
+            var player = Objects.requireNonNull(Bukkit.getPlayerExact("ChronicleTest"));
+            if (permissions == null) permissions = player.addAttachment(plugin);
+            permissions.setPermission("chronicle.lookup", !args[1].equals("denied"));
+            // Invoke the registered executor synchronously so revocation is strictly after admission,
+            // before its later tick delivery, rather than racing Paper's command scheduling.
+            Objects.requireNonNull(Bukkit.getPluginCommand("chronicle")).execute(player, "chronicle",
+                    new String[] {"lookup", "time:1d", "player:ChronicleTest"});
+            if (args[1].equals("revoke")) permissions.setPermission("chronicle.lookup", false);
+            plugin.getLogger().info("PLAYER_LOOKUP " + args[1]); return true;
+        }
+        if (args[0].equals("assert")) {
+            var player = Objects.requireNonNull(Bukkit.getPlayerExact("ChronicleTest"));
+            var world = player.getWorld();
+            boolean chest = args[1].contains("chest");
+            boolean okay = world.getBlockAt(0, 80, 0).getType() == (chest ? Material.CHEST : Material.STONE)
+                    && world.getBlockAt(0, 81, 0).getType() == Material.AIR
+                    && player.getOpenInventory().getTopInventory().getType() == org.bukkit.event.inventory.InventoryType.CRAFTING;
+            if (!okay) throw new AssertionError("Inspection changed block or opened inventory: " + args[1]);
+            plugin.getLogger().info("INSPECT_UNCHANGED " + args[1]); return true;
+        }
         if (args[0].equals("prepare")) {
             scenario = args[1]; attempts.clear();
             var player = Objects.requireNonNull(Bukkit.getPlayerExact("ChronicleTest"));
@@ -36,10 +70,11 @@ final class PacketFixture implements Listener {
                 world.getBlockAt(x, 79, z).setType(Material.STONE, false);
                 for (int y = 80; y <= 83; y++) world.getBlockAt(x, y, z).setType(Material.AIR, false);
             }
-            boolean breaking = scenario.contains("break") || scenario.equals("repeat");
+            boolean breaking = scenario.contains("break") || scenario.equals("repeat") || scenario.startsWith("inspect");
             world.getBlockAt(0, 80, 0).setType(breaking ? Material.STONE
                     : scenario.equals("replacement") ? Material.SHORT_GRASS : Material.AIR, false);
             if (scenario.equals("noop")) world.getBlockAt(0, 80, 0).setType(Material.AIR, false);
+            if (scenario.contains("chest")) world.getBlockAt(0, 80, 0).setType(Material.CHEST, false);
             player.setGameMode(scenario.startsWith("survival") ? GameMode.SURVIVAL : GameMode.CREATIVE);
             player.getInventory().clear();
             player.getInventory().setHeldItemSlot(0);
