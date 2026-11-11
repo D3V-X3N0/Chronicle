@@ -10,7 +10,7 @@ The priority order is correctness and data integrity, rollback safety, performan
 
 ## Scope and support gates
 
-The owner-authorised `v0.1.0-alpha.1` prerelease exposes completed M1/M2 for disposable evaluation. Its [notes](releases/v0.1.0-alpha.1.md) define the narrower scope. The first **stable** release still requires the recovery and operational gates below; publishing the alpha does not complete M6.
+The owner-authorised `v0.1.0-alpha.1` prerelease candidate packages completed M1/M2 for disposable evaluation. Its [notes](releases/v0.1.0-alpha.1.md) define the narrower scope. The first **stable** release still requires the recovery and operational gates below; publishing the alpha does not complete M6.
 
 “Supported” means implemented, tested on a named Paper build, documented with limitations, and included in a release compatibility matrix. A listener existing in source is not sufficient.
 

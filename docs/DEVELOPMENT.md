@@ -1,6 +1,6 @@
 # Development guide
 
-Status: M1 capture/storage and M2 investigation are implemented, 11 November 2026. The exact qualified subset and operational limits are in [CAPTURE_QUALIFICATION.md](CAPTURE_QUALIFICATION.md) and [STORAGE.md](STORAGE.md). Lookup and inspection are documented in [INVESTIGATION.md](INVESTIGATION.md); recovery is not implemented. The first release is the evaluation [alpha](releases/v0.1.0-alpha.1.md); stable-release gates remain unmet.
+Status: M1 capture/storage and M2 investigation are implemented, 11 November 2026. The exact qualified subset and operational limits are in [CAPTURE_QUALIFICATION.md](CAPTURE_QUALIFICATION.md) and [STORAGE.md](STORAGE.md). Lookup and inspection are documented in [INVESTIGATION.md](INVESTIGATION.md); recovery is not implemented. The prepared first release is the evaluation [alpha candidate](releases/v0.1.0-alpha.1.md); publication is blocked on CI startup errors and stable-release gates remain unmet.
 
 ## Environment and pinned inputs
 

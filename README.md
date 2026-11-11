@@ -6,11 +6,11 @@ The goal is a maintainable, performance-conscious alternative to established too
 
 ## Current status
 
-**The first prerelease, `v0.1.0-alpha.1`, records qualified player stone/air transitions in SQLite, provides read-only inspection and filtered lookup, and reports durability and coverage status. Recovery is not implemented. It is an evaluation alpha for disposable servers, not comprehensive server protection.**
+**The prepared first prerelease candidate, `v0.1.0-alpha.1`, records qualified player stone/air transitions in SQLite, provides read-only inspection and filtered lookup, and reports durability and coverage status. Recovery is not implemented. It is an evaluation alpha for disposable servers, not comprehensive server protection.**
 
 M1 and M2 are complete for the qualified scope: historical name/UUID resolution, exact filters, bounded asynchronous readers, requester-owned pagination, permission-aware commands and presentation-only reload. Unit, file-backed database, subprocess crash and packaged-native tests run in the build. Opt-in disposable Paper tests use actual network players, protection plugins, inspection interactions and exact history/command checks after restart. See the [investigation guide](docs/INVESTIGATION.md), [capture qualification](docs/CAPTURE_QUALIFICATION.md), [storage operations](docs/STORAGE.md) and [validation evidence](docs/TESTING.md#current-m2-evidence). The [roadmap](docs/ROADMAP.md) tracks completion gates. The existing [MIT license](LICENSE) is preserved.
 
-Download the plugin JAR, `SHA256SUMS` and `VALIDATION.md` from the [first alpha release](https://github.com/D3V-X3N0/Chronicle/releases/tag/v0.1.0-alpha.1). Read its [installation notes and limitations](docs/releases/v0.1.0-alpha.1.md) before evaluation. The stable release still requires the M3/M5/M6 gates.
+**Publication is blocked on GitHub Actions startup errors; no release or tag has been published.** Local checks passed, but candidate CI never started its jobs, including retries. [Issue #8](https://github.com/D3V-X3N0/Chronicle/issues/8) tracks the remaining CI, tag and asset verification. Read the prepared [installation notes and limitations](docs/releases/v0.1.0-alpha.1.md) before evaluation. The stable release still requires the M3/M5/M6 gates.
 
 ## Direction
 
