@@ -8,7 +8,7 @@ The goal is a maintainable, performance-conscious alternative to established too
 
 **The development build records qualified player stone/air transitions in SQLite, provides read-only inspection and filtered lookup, and reports durability and coverage status. Recovery is not implemented. It is not comprehensive server protection, and there is no public release.**
 
-M1 is complete and M2 investigation is implemented: historical name/UUID resolution, exact filters, bounded asynchronous readers, requester-owned pagination, permission-aware commands and presentation-only reload. Unit, file-backed database, subprocess crash and packaged-native tests run in the build. Opt-in disposable Paper tests use actual network players, protection plugins, inspection interactions and exact history/command checks after restart. See the [investigation guide](docs/INVESTIGATION.md), [capture qualification](docs/CAPTURE_QUALIFICATION.md), [storage operations](docs/STORAGE.md) and [validation evidence](docs/TESTING.md#current-m2-evidence). The [roadmap](docs/ROADMAP.md) tracks completion gates. The existing [MIT license](LICENSE) is preserved.
+M1 and M2 are complete for the qualified scope: historical name/UUID resolution, exact filters, bounded asynchronous readers, requester-owned pagination, permission-aware commands and presentation-only reload. Unit, file-backed database, subprocess crash and packaged-native tests run in the build. Opt-in disposable Paper tests use actual network players, protection plugins, inspection interactions and exact history/command checks after restart. See the [investigation guide](docs/INVESTIGATION.md), [capture qualification](docs/CAPTURE_QUALIFICATION.md), [storage operations](docs/STORAGE.md) and [validation evidence](docs/TESTING.md#current-m2-evidence). The [roadmap](docs/ROADMAP.md) tracks completion gates. The existing [MIT license](LICENSE) is preserved.
 
 ## Direction
 
@@ -66,4 +66,4 @@ The development plugin is `build/libs/chronicle-0.1.0-SNAPSHOT.jar`. Install onl
 
 Chronicle is intended to complement world backups. An asynchronous queue can lose uncommitted records on a crash, and a database transaction cannot atomically commit a Minecraft world save. The design makes those limits visible and requires cautious recovery rather than promising lossless logging or universal undo.
 
-There are no release dates or claims of production adoption. Progress is recorded through implementation, tests and issues. Future contributions should follow the [roadmap dependencies](docs/ROADMAP.md#milestone-2--functional-logging-and-investigation).
+There are no release dates or claims of production adoption. Progress is recorded through implementation, tests and issues. Future contributions should follow the [roadmap dependencies](docs/ROADMAP.md#milestone-3--safe-rollback-and-restoration).

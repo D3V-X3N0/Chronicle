@@ -43,7 +43,7 @@ reader/capture off-thread refusal, reload permission revocation and the 64 KiB
 configuration bound. The runtime artifacts were `smoke-1627604915803460554`,
 `invalid-config-3329628191706862685` and `packets-8237387263520448904`. Plugin SHA-256:
 `725975cf52eaecc6caa59b3fe2600bcbd7ed25972403f951ebf9ef1524ac2fb7`.
-A final regression also bounds oversized stored UUID/action fields, labels malformed identities unknown and verifies a space/Unicode/fragment-containing database path. The full local runtime suite and a four-variant 10k mixed-load rerun passed after this hardening. Final source/CI revision is recorded after the latest pipeline completes.
+A final regression also bounds oversized stored UUID/action fields, labels malformed identities unknown and verifies a space/Unicode/fragment-containing database path. The full local runtime suite and a four-variant 10k mixed-load rerun passed after this hardening. Production revision `4525bc3` passed all 68 tests on Linux and Windows in [run 43086413448](https://github.com/D3V-X3N0/Chronicle/actions/runs/43086413448).
 
 Additional cross-platform runtime evidence: [opt-in run 43085748437](https://github.com/D3V-X3N0/Chronicle/actions/runs/43085748437)
 passed on Linux and Windows at `530258c`, including `clean build` (67 tests) and both
@@ -51,6 +51,13 @@ real Paper harnesses with explicit EULA acceptance. Its ordinary
 [push run 43085747438](https://github.com/D3V-X3N0/Chronicle/actions/runs/43085747438)
 also passed. These runs retain reports and sanitized runtime logs through the normal
 seven-day artifact policy.
+
+The final logout regression restores `chronicle.inspect` permission after reconnect,
+without toggling mode, before asserting normal chest opening. This prevents lost
+permission from masking a stale inspection mode. `clean build paperPacketTest
+-PacceptMinecraftEula=true` passed all 68 tests and the strengthened packet fixture
+in `packets-18225316516335517653`; the production JAR hash remains unchanged.
+Local Markdown links/anchors, UTF-8/final-newline checks and `git diff --check` passed.
 
 The first revocation fixture used Paper's scheduled command path, so it revoked
 permission before query admission. It now invokes the registered executor

@@ -1,6 +1,6 @@
 # Development roadmap
 
-Status: M1 is complete for the qualified direct-player stone/air subset, with local Paper/restart evidence and passing Linux/Windows CI on 11 November 2026. M2 investigation is implemented and undergoing its final acceptance checks; all recovery work remains unimplemented. There are no delivery dates. Dependencies and evidence determine progress. The [product specification](PRODUCT_SPEC.md) defines what may eventually be advertised, and [architecture](ARCHITECTURE.md) records the proposed design and open decisions.
+Status: M1 is complete for the qualified direct-player stone/air subset, with local Paper/restart evidence and passing Linux/Windows CI on 11 November 2026. M2 functional logging and investigation is complete for the same qualified scope, with exact query/restart, bounded load and CI evidence; all recovery work remains unimplemented. There are no delivery dates. Dependencies and evidence determine progress. The [product specification](PRODUCT_SPEC.md) defines what may eventually be advertised, and [architecture](ARCHITECTURE.md) records the proposed design and open decisions.
 
 The main path is **M1 -> M2 -> M3 -> M5 -> M6**. M4 builds on M2's capture contracts and uses M3's safety model for any recovery research. Expanded families can be promoted separately after their tests pass; M4 is not permission to delay core correctness until M5. Tests, diagnostics, and basic failure handling start in M1.
 
@@ -59,6 +59,8 @@ Exit criteria:
 
 **Depends on:** M1 identity, capture, durability and migration contracts.
 
+**Complete:** production code `4525bc3`; [validation and limits](TESTING.md#current-m2-evidence), including 68 passing tests, local and cross-platform Paper evidence, and synthetic index/mixed-load measurements through one million starting rows.
+
 Implementation and evidence are tracked in [M2_PLAN.md](M2_PLAN.md),
 [INVESTIGATION.md](INVESTIGATION.md), [current M2 evidence](TESTING.md#current-m2-evidence)
 and the [M2 milestone](https://github.com/D3V-X3N0/Chronicle/milestone/2).
@@ -67,20 +69,20 @@ no M4 family or recovery codec is promoted by this milestone.
 
 Tasks:
 
-- Stabilise the supported block/state list, name-to-UUID lookup, explicit actor/cause quality, and snapshot version checks.
-- Implement inspection, lookup filters, permissions, tab completion, bounded asynchronous queries and stable cursor pagination.
-- Surface committed boundaries, lag, coverage gaps and startup/unclean-session warnings in lookup and status.
-- Measure candidate indexes on representative history sizes while writes continue.
-- Add multi-plugin cancellation tests, same-tick order fixtures, negative-coordinate/radius boundaries and restart persistence tests.
-- Implement reload only for validated runtime-safe settings; document restart-required settings.
+- [x] Stabilise the supported block/state list, name-to-UUID lookup, explicit actor/cause quality, and snapshot version checks.
+- [x] Implement inspection, lookup filters, permissions, tab completion, bounded asynchronous queries and stable cursor pagination.
+- [x] Surface committed boundaries, lag, coverage gaps and startup/unclean-session warnings in lookup and status.
+- [x] Measure candidate indexes on representative history sizes while writes continue.
+- [x] Add multi-plugin cancellation tests, same-tick order fixtures, negative-coordinate/radius boundaries and restart persistence tests.
+- [x] Implement reload only for validated runtime-safe settings; document restart-required settings.
 
 Exit criteria:
 
-- An administrator can investigate a scripted griefing fixture from a clean setup, restart the server, and obtain the same committed history.
-- Filter results exactly match an independent reference dataset; pagination neither duplicates nor omits fixed-boundary rows when new rows arrive.
-- Unknown or incomplete history is labelled; missing permission denies both commands and asynchronous results.
-- Inspection does not mutate the world or open inventories on its qualified interactions, and does not bypass protection cancellation.
-- High-volume recording with simultaneous lookups respects memory limits, exposes backlog, and keeps world API calls on the server thread. Initial measurement results are recorded without performance-superiority claims.
+- [x] An administrator can investigate a scripted griefing fixture from a clean setup, restart the server, and obtain the same committed history.
+- [x] Filter results exactly match an independent reference dataset; pagination neither duplicates nor omits fixed-boundary rows when new rows arrive.
+- [x] Unknown or incomplete history is labelled; missing permission denies both commands and asynchronous results.
+- [x] Inspection does not mutate the world or open inventories on its qualified interactions, and does not bypass protection cancellation.
+- [x] High-volume recording with simultaneous lookups respects memory limits, exposes backlog, and keeps world API calls on the server thread. Initial measurement results are recorded without performance-superiority claims.
 
 ## Milestone 3 — Safe rollback and restoration
 

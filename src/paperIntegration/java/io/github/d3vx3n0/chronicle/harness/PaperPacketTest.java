@@ -122,6 +122,8 @@ public final class PaperPacketTest {
                 long deadline = System.nanoTime() + Duration.ofSeconds(15).toNanos();
                 while (!rejoined.joined() && System.nanoTime() < deadline) Thread.sleep(25);
                 require(rejoined.joined(), "player rejoined after inspection logout");
+                // Restore permission without toggling mode: permission loss must not mask a stale mode.
+                command(process, "chroniclefixture grant rejoin"); await(output, process, "PERMISSIONS_GRANTED rejoin", 10);
                 command(process, "chroniclefixture prepare logout-chest"); await(output, process, "PACKET_PREPARED logout-chest", 10);
                 Thread.sleep(250); rejoined.interact(80, 0); Thread.sleep(250);
                 command(process, "chroniclefixture assert logout-chest"); await(output, process, "INSPECT_UNCHANGED logout-chest", 10);

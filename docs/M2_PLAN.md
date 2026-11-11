@@ -48,8 +48,9 @@ No recovery, expanded event families or release work is included.
   contract. Unknown versions or unexpected payloads are labelled unsupported for
   interpretation, never converted to air or made eligible for recovery.
 
-Actual evidence and measured limits will be recorded in `TESTING.md` and an M2
-investigation/load report. Planned tests are not completion evidence.
+M2 is complete for the qualified scope. Actual evidence and measured limits are
+recorded in [TESTING.md](TESTING.md#current-m2-evidence) and [M2_MEASUREMENTS.md](M2_MEASUREMENTS.md).
+The dependency steps above describe the implementation order, not outstanding work.
 
 ## Tracking
 

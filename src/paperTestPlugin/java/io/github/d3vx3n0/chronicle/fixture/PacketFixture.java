@@ -33,6 +33,13 @@ final class PacketFixture implements Listener {
             Objects.requireNonNull(Bukkit.getPlayerExact("ChronicleTest")).sendMessage(net.kyori.adventure.text.Component.text("Lookup fence " + args[1]));
             return true;
         }
+        if (args[0].equals("grant")) {
+            var player = Objects.requireNonNull(Bukkit.getPlayerExact("ChronicleTest"));
+            permissions = player.addAttachment(plugin);
+            permissions.setPermission("chronicle.inspect", true); permissions.setPermission("chronicle.lookup", true);
+            if (!player.hasPermission("chronicle.inspect")) throw new AssertionError("Rejoined inspector permission missing");
+            plugin.getLogger().info("PERMISSIONS_GRANTED " + args[1]); return true;
+        }
         if (args[0].equals("inspect")) {
             var player = Objects.requireNonNull(Bukkit.getPlayerExact("ChronicleTest"));
             if (permissions == null) permissions = player.addAttachment(plugin);
