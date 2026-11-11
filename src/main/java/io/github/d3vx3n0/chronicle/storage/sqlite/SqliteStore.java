@@ -129,9 +129,8 @@ public final class SqliteStore implements HistoryStore {
             try (var statement = connection.prepareStatement("INSERT INTO schema_migrations VALUES(1,?)")) {
                 statement.setString(1, checksum(sql)); statement.executeUpdate();
             }
-            execute("PRAGMA user_version=1"); connection.commit();
-        } catch (SQLException failure) { rollback(failure); throw failure; }
-        finally { connection.setAutoCommit(true); }
+            execute("PRAGMA user_version=1"); connection.commit(); connection.setAutoCommit(true);
+        } catch (SQLException | RuntimeException | Error failure) { rollback(failure); throw failure; }
     }
 
     /** Same keys require exactly the same canonical contents, including all identity/evidence fields. */
@@ -197,9 +196,10 @@ public final class SqliteStore implements HistoryStore {
             if (!groups.isEmpty()) transactionProbe.accept("before-commit");
             connection.commit();
             if (!groups.isEmpty()) transactionProbe.accept("after-commit");
-            return Long.parseLong(scalar("SELECT coalesce(max(id),0) FROM changes"));
-        } catch (SQLException failure) { rollback(failure); throw failure; }
-        finally { connection.setAutoCommit(true); }
+            long position = Long.parseLong(scalar("SELECT coalesce(max(id),0) FROM changes"));
+            connection.setAutoCommit(true);
+            return position;
+        } catch (SQLException | RuntimeException | Error failure) { rollback(failure); throw failure; }
     }
 
     private static byte[] canonical(CaptureGroup group, int member) {
@@ -215,7 +215,12 @@ public final class SqliteStore implements HistoryStore {
             return bytes.toByteArray();
         } catch (IOException impossible) { throw new AssertionError(impossible); }
     }
-    private void rollback(SQLException original) { try { connection.rollback(); } catch (SQLException failure) { original.addSuppressed(failure); } }
+    private void rollback(Throwable original) {
+        // Enabling auto-commit can commit an active transaction. Never do that after a failed rollback,
+        // and roll back unchecked/native failures as well as JDBC exceptions before resetting the mode.
+        try { connection.rollback(); connection.setAutoCommit(true); }
+        catch (SQLException | RuntimeException | Error failure) { original.addSuppressed(failure); }
+    }
     private String scalar(String sql) throws SQLException {
         try (var statement = connection.createStatement(); var result = statement.executeQuery(sql)) {
             if (!result.next()) throw new SQLException("Missing SQLite setting/result"); return result.getString(1);
