@@ -12,7 +12,10 @@ public record HistoryRow(long id, long session, long sequence, int member, long 
                 && (evidence.equals("NEXT_OBSERVATION") || evidence.equals("LATER_SAMPLE"));
     }
     public String attribution() {
-        return actorKind.equals("PLAYER") && causeKind.equals("PLAYER_ACTION") && quality.equals("DIRECT")
-                ? "PLAYER / PLAYER_ACTION / DIRECT" : "UNKNOWN attribution (" + actorKind + "/" + causeKind + "/" + quality + ")";
+        return validIdentity(actor) && validIdentity(world) && actorKind.equals("PLAYER") && causeKind.equals("PLAYER_ACTION") && quality.equals("DIRECT")
+                ? "PLAYER / PLAYER_ACTION / DIRECT" : "UNKNOWN attribution/identity (" + actorKind + "/" + causeKind + "/" + quality + ")";
+    }
+    public static boolean validIdentity(String identity) {
+        return identity != null && identity.matches("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
     }
 }

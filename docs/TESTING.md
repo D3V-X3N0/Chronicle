@@ -37,13 +37,20 @@ implementation plan and tracked acceptance gates are in [M2_PLAN.md](M2_PLAN.md)
   no skips. This run did not start Minecraft. Final expanded checks are recorded below.
 
 Final local acceptance: JDK 25.0.1 on Windows 11, `clean build paperIntegrationTest
-paperPacketTest -PacceptMinecraftEula=true` passed with **67 tests**, zero failures,
+paperPacketTest -PacceptMinecraftEula=true` passed with **68 tests** (43 unit/packaging and 25 database/native/crash), zero failures,
 errors or skips. This also checks inspection-mode clearing across logout/rejoin,
 reader/capture off-thread refusal, reload permission revocation and the 64 KiB
-configuration bound. The runtime artifacts were `smoke-16162126657627125268`,
-`invalid-config-8697724743324508008` and `packets-12479402692054961932`. Plugin SHA-256:
-`0f56f61cc562636ca8047bbd796a833a26568fe9072ff1cd97c0c2c785d3d6b6`.
-Final source/CI revision is recorded after the latest pipeline completes.
+configuration bound. The runtime artifacts were `smoke-1627604915803460554`,
+`invalid-config-3329628191706862685` and `packets-8237387263520448904`. Plugin SHA-256:
+`725975cf52eaecc6caa59b3fe2600bcbd7ed25972403f951ebf9ef1524ac2fb7`.
+A final regression also bounds oversized stored UUID/action fields, labels malformed identities unknown and verifies a space/Unicode/fragment-containing database path. The full local runtime suite and a four-variant 10k mixed-load rerun passed after this hardening. Final source/CI revision is recorded after the latest pipeline completes.
+
+Additional cross-platform runtime evidence: [opt-in run 43085748437](https://github.com/D3V-X3N0/Chronicle/actions/runs/43085748437)
+passed on Linux and Windows at `530258c`, including `clean build` (67 tests) and both
+real Paper harnesses with explicit EULA acceptance. Its ordinary
+[push run 43085747438](https://github.com/D3V-X3N0/Chronicle/actions/runs/43085747438)
+also passed. These runs retain reports and sanitized runtime logs through the normal
+seven-day artifact policy.
 
 The first revocation fixture used Paper's scheduled command path, so it revoked
 permission before query admission. It now invokes the registered executor

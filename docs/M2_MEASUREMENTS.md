@@ -24,7 +24,7 @@ database. Preserve needed reports before `clean` removes generated files.
 
 ## Environment and protocol
 
-Measured 11 November 2026 on Windows 11/NTFS, AMD Ryzen 9 7950X (16 cores/32 logical
+Measured at code/harness revision `530258c` on 11 November 2026, Windows 11 Home build 26200/NTFS, AMD Ryzen 9 7950X (16 cores/32 logical
 processors), 67,808,509,952 bytes reported physical memory, Crucial CT4000T700SSD3
 NVMe storage for the repository's C: volume. Oracle JDK 25.0.1+8-LTS-27, G1, 512 MiB
 maximum measurement JVM heap; Gradle 9.9.1, Xerial JDBC 3.54.1.0 / SQLite 3.54.1,
@@ -129,3 +129,9 @@ all 32 waiting slots and all 34 retained completions; server-thread guards and r
 packet tests cover Paper ownership. Long native/OS stalls, arbitrary protection
 plugins, hardware power loss, recovery, inventory metadata and expanded event
 families remain outside this report.
+
+The later bounded-identity read hardening leaves predicates, indexes and keyset
+boundaries unchanged. Its [10k regression measurements](evidence/m2-bounded-identity-load-2026-11-11.tsv)
+also passed all four variants, oracle and accounting checks. The larger numerical
+baseline above is explicitly the measured `530258c` revision, rather than a new
+million-row timing claim for a later artifact.

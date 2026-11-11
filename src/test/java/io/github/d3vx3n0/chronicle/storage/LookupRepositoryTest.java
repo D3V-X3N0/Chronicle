@@ -115,4 +115,18 @@ class LookupRepositoryTest {
         assertThrows(Exception.class, () -> new SqliteReader(directory.resolve("missing.db")));
         assertFalse(java.nio.file.Files.exists(directory.resolve("missing.db")));
     }
+    @Test void oversizedStoredIdentitiesAreBoundedAndNeverSilentlyParsedAsRealUuids() throws Exception {
+        Path db = directory.resolve("space # caf\u00e9/history.db");
+        try (var writer = new SqliteStore(db, 100)) {
+            writer.startSession(1, "test"); writer.write(List.of(group(1, WORLD, ACTOR, "Alex", 0, 80, 0, 1, "PLACE")), List.of(), true, 2);
+        }
+        // Deliberately corrupted disposable input, not possible through normal immutable capture.
+        SqliteStoreTest.execute(db, "UPDATE changes SET actor_uuid=printf('%100000s','x'),world_uuid=printf('%100000s','y')");
+        SqliteStoreTest.execute(db, "UPDATE actor_names SET actor_uuid=printf('%100000s','x')");
+        try (var reader = new SqliteReader(db)) {
+            var row = reader.next(new LookupFilter(List.of(), null, 0, 10, Set.of("PLACE"), null), 1, 2, 10, () -> false, deadline()).rows().getFirst();
+            assertEquals(64, row.actor().length()); assertEquals(64, row.world().length()); assertTrue(row.attribution().startsWith("UNKNOWN"));
+            assertThrows(IllegalArgumentException.class, () -> reader.first(new LookupInput(List.of("Alex"), null, 0, 10, Set.of("PLACE"), null), 10, () -> false, deadline()));
+        }
+    }
 }

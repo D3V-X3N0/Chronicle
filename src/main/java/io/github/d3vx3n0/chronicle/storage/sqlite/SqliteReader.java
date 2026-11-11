@@ -80,14 +80,16 @@ public final class SqliteReader implements AutoCloseable {
 
     private UUID resolve(String text, boolean actor) throws SQLException {
         boolean uuid = text.matches("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
-        String sql = uuid ? "SELECT uuid FROM " + (actor ? "actors" : "worlds") + " WHERE uuid=? LIMIT 2"
-                : actor ? "SELECT actor_uuid FROM actor_names WHERE name=? COLLATE NOCASE LIMIT 2"
-                : "SELECT uuid FROM worlds WHERE last_name=? COLLATE NOCASE LIMIT 2";
+        String sql = uuid ? "SELECT substr(uuid,1,64) FROM " + (actor ? "actors" : "worlds") + " WHERE uuid=? LIMIT 2"
+                : actor ? "SELECT substr(actor_uuid,1,64) FROM actor_names WHERE name=? COLLATE NOCASE LIMIT 2"
+                : "SELECT substr(uuid,1,64) FROM worlds WHERE last_name=? COLLATE NOCASE LIMIT 2";
         try (var statement = connection.prepareStatement(sql)) {
             statement.setString(1, uuid ? UUID.fromString(text).toString() : text);
             try (var result = statement.executeQuery()) {
                 if (!result.next()) throw new IllegalArgumentException("Unknown stored " + (actor ? "player" : "world") + ": " + text);
-                UUID id = UUID.fromString(result.getString(1));
+                String identity = result.getString(1);
+                if (!HistoryRow.validIdentity(identity)) throw new IllegalArgumentException("Unsupported stored identity; check database integrity");
+                UUID id = UUID.fromString(identity);
                 if (result.next()) throw new IllegalArgumentException("Ambiguous name: " + text + "; use a UUID");
                 return id;
             }
@@ -101,8 +103,8 @@ public final class SqliteReader implements AutoCloseable {
     public static Sql select(LookupFilter filter, long boundary, long before, int limit) {
         if (limit < 1 || limit > 50 || boundary < 0 || before < 1) throw new IllegalArgumentException("Invalid page bounds");
         var sql = new StringBuilder("""
-                SELECT id,session_id,capture_sequence,member_index,occurred_at,world_uuid,x,y,z,actor_uuid,
-                substr(actor_name,1,64),action,substr(before_data,1,256),substr(after_data,1,256),codec_version,
+                SELECT id,session_id,capture_sequence,member_index,occurred_at,substr(world_uuid,1,64),x,y,z,substr(actor_uuid,1,64),
+                substr(actor_name,1,64),substr(action,1,64),substr(before_data,1,256),substr(after_data,1,256),codec_version,
                 data_version,substr(evidence,1,64),substr(actor_kind,1,32),substr(cause_kind,1,32),substr(attribution_quality,1,32)
                 FROM changes WHERE id<=? AND id<? AND occurred_at>=? AND occurred_at<?
                 """);
