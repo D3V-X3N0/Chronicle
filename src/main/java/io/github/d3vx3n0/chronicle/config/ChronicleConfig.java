@@ -41,6 +41,8 @@ public record ChronicleConfig(boolean showRuntimeDetails, StorageSettings storag
         return candidate;
     }
     private static int pageSize(Map<String, Object> values) {
+        if (values.containsKey("lookup") && !values.containsKey("lookup.page-size"))
+            throw new IllegalArgumentException("lookup must be a section containing page-size");
         Object value = values.getOrDefault("lookup.page-size", 10);
         if (!(value instanceof Integer size)) throw new IllegalArgumentException("lookup.page-size must be a YAML integer");
         return size;

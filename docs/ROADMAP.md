@@ -1,6 +1,6 @@
 # Development roadmap
 
-Status: M1 is complete for the qualified direct-player stone/air subset, with local Paper/restart evidence and passing Linux/Windows CI on 11 November 2026. M2 lookup and all recovery work remain unimplemented. There are no delivery dates. Dependencies and evidence determine progress. The [product specification](PRODUCT_SPEC.md) defines what may eventually be advertised, and [architecture](ARCHITECTURE.md) records the proposed design and open decisions.
+Status: M1 is complete for the qualified direct-player stone/air subset, with local Paper/restart evidence and passing Linux/Windows CI on 11 November 2026. M2 investigation is implemented and undergoing its final acceptance checks; all recovery work remains unimplemented. There are no delivery dates. Dependencies and evidence determine progress. The [product specification](PRODUCT_SPEC.md) defines what may eventually be advertised, and [architecture](ARCHITECTURE.md) records the proposed design and open decisions.
 
 The main path is **M1 -> M2 -> M3 -> M5 -> M6**. M4 builds on M2's capture contracts and uses M3's safety model for any recovery research. Expanded families can be promoted separately after their tests pass; M4 is not permission to delay core correctness until M5. Tests, diagnostics, and basic failure handling start in M1.
 
@@ -17,7 +17,7 @@ Implementation plan and current progress:
 
 Completion evidence: a clean checkout builds with only the documented JDK and Wrapper; the plugin loads/unloads in the disposable server; no production world is used; cancellation yields no successful-change record; the observation report identifies any unprovable intermediate state. This provides a reproducible foundation and removes the riskiest assumption before schema design hardens.
 
-The separate synthetic fixture remains diagnostic. Production capture now admits only qualified stone/air transitions after bounded reconciliation. SQLite, schema 1, bounded transactional writing and status are implemented; see [storage operations](STORAGE.md) and [current evidence](TESTING.md#current-m1-evidence).
+The separate synthetic fixture remains diagnostic. Production capture now admits only qualified stone/air transitions after bounded reconciliation. SQLite, schema 2 (retaining migration 1), bounded transactional writing and status are implemented; see [storage operations](STORAGE.md) and [current evidence](TESTING.md#current-m1-evidence).
 
 ### Tracked foundation work
 
@@ -58,6 +58,12 @@ Exit criteria:
 ## Milestone 2 — Functional logging and investigation
 
 **Depends on:** M1 identity, capture, durability and migration contracts.
+
+Implementation and evidence are tracked in [M2_PLAN.md](M2_PLAN.md),
+[INVESTIGATION.md](INVESTIGATION.md), [current M2 evidence](TESTING.md#current-m2-evidence)
+and the [M2 milestone](https://github.com/D3V-X3N0/Chronicle/milestone/2).
+The supported state list remains exactly the qualified stone/air transitions;
+no M4 family or recovery codec is promoted by this milestone.
 
 Tasks:
 

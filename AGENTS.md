@@ -6,7 +6,7 @@ These instructions apply throughout the repository. Keep shared agent guidance h
 
 Chronicle is a planned Minecraft Paper activity logging and recovery plugin. Priorities, in order: correctness and data integrity, rollback safety, performance, usability, maintainability.
 
-M1 implementation now includes qualified direct-player stone/air capture, bounded ordered reconciliation, SQLite lifecycle/schema, atomic idempotent writing, coverage/status diagnostics and disposable packet-driven restart tests. Lookup and recovery are not implemented, and there is no release. Inspect the checkout and current test evidence before relying on this status; update it as implementation changes.
+M1 includes qualified direct-player stone/air capture, bounded ordered reconciliation, SQLite lifecycle/schema, atomic idempotent writing and coverage/status diagnostics. M2 adds schema-2 identity aliases, bounded asynchronous investigation, protected inspection, stable cursors and presentation-only reload. Disposable packet/restart tests and synthetic mixed-load measurements cover these contracts; see `docs/INVESTIGATION.md`, `docs/M2_MEASUREMENTS.md` and current test evidence. Recovery is not implemented, and there is no release. Inspect the checkout and evidence before relying on this status; update it as implementation changes.
 
 - For documentation tasks, keep changes to documentation; do not bootstrap the plugin or install dependencies.
 - When the user requests implementation, work on the requested scope using the roadmap's dependencies and acceptance criteria. The planning status is not a permanent prohibition on implementation.
@@ -24,6 +24,7 @@ Start with [README.md](README.md), inspect Git status, and read the documents re
 | [ROADMAP.md](docs/ROADMAP.md) | Milestone dependencies, the first development task and completion evidence |
 | [DEVELOPMENT.md](docs/DEVELOPMENT.md) | Environment, build tasks, package boundaries and engineering conventions |
 | [TESTING.md](docs/TESTING.md) | Test layers, failure scenarios, independent correctness checks and release gates |
+| [INVESTIGATION.md](docs/INVESTIGATION.md) | Implemented query, permission, inspection and reload contracts |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution scope, review expectations and licensing |
 
 Treat design documents as plans until implementation and tests establish the behaviour. Resolve inconsistencies explicitly and update the affected documents together; do not silently broaden scope.
@@ -61,6 +62,8 @@ For documentation changes:
 For code changes, run `.\gradlew.bat clean build` on Windows or `bash ./gradlew clean build` on Linux/macOS with JDK 25. This runs JUnit/packaging checks and compiles the separate fixture/harness. `integrationTest` runs file-backed SQLite, packaged native-loading and subprocess crash tests as part of `build`. `paperIntegrationTest` and `paperPacketTest` start disposable Paper servers only with explicit EULA acceptance via `-PacceptMinecraftEula=true`; preserve that opt-in. Synthetic dispatch fixtures are not real-player capture qualification; `paperPacketTest` uses actual loopback player packets and checks durable history after restart. See `docs/CAPTURE_QUALIFICATION.md` and `docs/STORAGE.md`. Run relevant checks, add meaningful regression tests for fixes, and report unavailable checks. Use independent expected states for future rollback tests.
 
 Use disposable worlds/databases for runtime and failure tests. Never test destructive recovery against production data or include secrets, private player data, downloaded servers, generated binaries or local databases in changes.
+
+`historyLoadTest` is an opt-in synthetic index/mixed-load task (default 10,000/100,000/1,000,000 starting rows); it creates only disposable databases under `build/load-tests/`. It is not a Paper tick-performance benchmark. Preserve needed measurements/logs before `clean`, which deletes generated evidence.
 
 ## Change discipline and handoff
 

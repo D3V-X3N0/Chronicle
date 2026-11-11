@@ -96,5 +96,7 @@ class ChronicleConfigTest {
         for (Object invalid : java.util.List.of(0, 51, "10")) {
             values.put("lookup.page-size", invalid); assertThrows(IllegalArgumentException.class, () -> ChronicleConfig.from(values));
         }
+        values.remove("lookup.page-size"); values.put("lookup", "invalid scalar");
+        assertThrows(IllegalArgumentException.class, () -> ChronicleConfig.from(values));
     }
 }

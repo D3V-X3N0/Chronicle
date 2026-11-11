@@ -1,0 +1,222 @@
+# OS=Windows 11 10.0; Java=25.0.1+8-LTS-27; maxHeap=536870912; processors=32; GC=[G1 Young Generation, G1 Concurrent GC, G1 Old Generation]
+# Generator=v1 modular sequence (no PRNG); WAL/FULL; warmup=10; rounds=3; samples=30; page=10; read deadline=2s; VM budget=10000000
+size	variant	round	scope	p50_ms	p95_ms	p99_ms	max_ms
+# seed size=10000 seconds=0.7159059
+# plan 10000 position-only actor [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# plan 10000 position-only world [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# plan 10000 position-only circle [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# plan 10000 position-only narrow-time [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# startup 10000 position-only seconds=0.0688365
+10000	position-only	1	actor	0.2821	0.465	0.5605	0.5605
+10000	position-only	2	actor	0.2865	0.4241	0.9359	0.9359
+10000	position-only	3	actor	0.2426	0.3441	0.3556	0.3556
+10000	position-only	1	world	0.1652	0.4365	0.5674	0.5674
+10000	position-only	2	world	0.1581	0.2252	0.246	0.246
+10000	position-only	3	world	0.1391	0.205	0.2451	0.2451
+10000	position-only	1	circle	0.1801	0.2554	0.2737	0.2737
+10000	position-only	2	circle	0.1884	0.4536	0.5956	0.5956
+10000	position-only	3	circle	0.1558	0.202	0.2536	0.2536
+10000	position-only	1	narrow-time	3.2407	4.1612	4.6292	4.6292
+10000	position-only	2	narrow-time	3.2195	4.5538	18.7666	18.7666
+10000	position-only	3	narrow-time	3.1872	4.1945	5.2112	5.2112
+# writes 10000 position-only seconds=0.5388675 offered=167000 committed=11502 rejected=155498 maxPending=2000 maxBytes=1439600 maxOldestMs=102 DB=11145216 WAL=0
+# plan 10000 ordered actor [SEARCH changes USING INDEX changes_actor_id (actor_uuid=? AND id<?)]
+# plan 10000 ordered world [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# plan 10000 ordered circle [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# plan 10000 ordered narrow-time [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# startup 10000 ordered seconds=0.0264314
+10000	ordered	1	actor	0.1262	0.1823	0.2761	0.2761
+10000	ordered	2	actor	0.1332	0.2525	0.2657	0.2657
+10000	ordered	3	actor	0.1175	0.1757	0.1836	0.1836
+10000	ordered	1	world	0.1137	0.1427	0.1431	0.1431
+10000	ordered	2	world	0.1169	0.1594	0.2001	0.2001
+10000	ordered	3	world	0.1142	0.1439	0.1498	0.1498
+10000	ordered	1	circle	0.1443	0.158	0.1631	0.1631
+10000	ordered	2	circle	0.1471	0.1712	0.2014	0.2014
+10000	ordered	3	circle	0.1446	0.1563	0.1601	0.1601
+10000	ordered	1	narrow-time	3.0263	4.1048	4.166	4.166
+10000	ordered	2	narrow-time	3.0574	5.0313	5.3186	5.3186
+10000	ordered	3	narrow-time	3.2221	4.9412	5.2514	5.2514
+# writes 10000 ordered seconds=0.5765446 offered=153000 committed=9501 rejected=143499 maxPending=2000 maxBytes=1439600 maxOldestMs=112 DB=12140544 WAL=0
+# plan 10000 time actor [SEARCH changes USING INDEX candidate_actor_time (actor_uuid=? AND occurred_at>? AND occurred_at<?), USE TEMP B-TREE FOR ORDER BY]
+# plan 10000 time world [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# plan 10000 time circle [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# plan 10000 time narrow-time [SEARCH changes USING INDEX candidate_time (occurred_at>? AND occurred_at<?), USE TEMP B-TREE FOR ORDER BY]
+# startup 10000 time seconds=0.0282634
+10000	time	1	actor	0.2083	0.3092	0.3168	0.3168
+10000	time	2	actor	0.2174	0.3217	0.4987	0.4987
+10000	time	3	actor	0.237	0.3626	0.9277	0.9277
+10000	time	1	world	0.1203	0.1447	0.1628	0.1628
+10000	time	2	world	0.1244	0.1466	0.1512	0.1512
+10000	time	3	world	0.1248	0.1538	0.1569	0.1569
+10000	time	1	circle	0.1656	0.257	0.2676	0.2676
+10000	time	2	circle	0.1642	0.212	0.259	0.259
+10000	time	3	circle	0.1644	0.1963	0.2039	0.2039
+10000	time	1	narrow-time	0.1234	0.1516	0.1647	0.1647
+10000	time	2	narrow-time	0.1354	0.1697	0.1773	0.1773
+10000	time	3	narrow-time	0.129	0.1634	0.167	0.167
+# writes 10000 time seconds=0.1858894 offered=28000 committed=3003 rejected=24997 maxPending=2000 maxBytes=1439600 maxOldestMs=70 DB=8445952 WAL=0
+# plan 10000 hybrid actor [SEARCH changes USING INDEX changes_actor_id (actor_uuid=? AND id<?)]
+# plan 10000 hybrid world [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# plan 10000 hybrid circle [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# plan 10000 hybrid narrow-time [SEARCH changes USING INDEX candidate_time (occurred_at>? AND occurred_at<?), USE TEMP B-TREE FOR ORDER BY]
+# startup 10000 hybrid seconds=0.0317059
+10000	hybrid	1	actor	0.1112	0.1579	0.1815	0.1815
+10000	hybrid	2	actor	0.1088	0.129	0.1397	0.1397
+10000	hybrid	3	actor	0.1028	0.1184	0.1254	0.1254
+10000	hybrid	1	world	0.1133	0.1706	0.1906	0.1906
+10000	hybrid	2	world	0.1124	0.1335	0.1456	0.1456
+10000	hybrid	3	world	0.108	0.1438	0.1647	0.1647
+10000	hybrid	1	circle	0.1431	0.1552	0.1611	0.1611
+10000	hybrid	2	circle	0.1376	0.1546	0.1556	0.1556
+10000	hybrid	3	circle	0.1385	0.1508	0.1526	0.1526
+10000	hybrid	1	narrow-time	0.1039	0.1397	0.1612	0.1612
+10000	hybrid	2	narrow-time	0.105	0.1248	0.1267	0.1267
+10000	hybrid	3	narrow-time	0.1084	0.1212	0.1624	0.1624
+# writes 10000 hybrid seconds=0.171351 offered=20500 committed=3017 rejected=17483 maxPending=2000 maxBytes=1439600 maxOldestMs=48 DB=8318976 WAL=0
+# seed size=100000 seconds=11.486449
+# plan 100000 position-only actor [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# plan 100000 position-only world [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# plan 100000 position-only circle [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# plan 100000 position-only narrow-time [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# startup 100000 position-only seconds=0.1642097
+100000	position-only	1	actor	0.1923	0.3659	0.41	0.41
+100000	position-only	2	actor	0.1648	0.2182	0.2196	0.2196
+100000	position-only	3	actor	0.1639	0.2226	0.2239	0.2239
+100000	position-only	1	world	0.1552	0.1946	0.1961	0.1961
+100000	position-only	2	world	0.1471	0.184	0.1947	0.1947
+100000	position-only	3	world	0.1082	0.1855	0.2013	0.2013
+100000	position-only	1	circle	0.1966	0.2295	1.0269	1.0269
+100000	position-only	2	circle	0.1981	0.2232	0.2464	0.2464
+100000	position-only	3	circle	0.1957	0.213	0.2405	0.2405
+100000	position-only	1	narrow-time	7.2013	9.5019	10.2896	10.2896
+100000	position-only	2	narrow-time	6.8912	10.1174	10.4851	10.4851
+100000	position-only	3	narrow-time	7.4729	9.6511	9.7041	9.7041
+# writes 100000 position-only seconds=1.0802887 offered=304500 committed=10017 rejected=294483 maxPending=2000 maxBytes=1439600 maxOldestMs=194 DB=62464000 WAL=0
+# plan 100000 ordered actor [SEARCH changes USING INDEX changes_actor_id (actor_uuid=? AND id<?)]
+# plan 100000 ordered world [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# plan 100000 ordered circle [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# plan 100000 ordered narrow-time [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# startup 100000 ordered seconds=0.1708124
+100000	ordered	1	actor	0.1739	0.2098	0.2156	0.2156
+100000	ordered	2	actor	0.1089	0.1918	0.2356	0.2356
+100000	ordered	3	actor	0.1544	0.1741	0.1873	0.1873
+100000	ordered	1	world	0.0984	0.2073	0.21	0.21
+100000	ordered	2	world	0.0926	0.1141	0.1212	0.1212
+100000	ordered	3	world	0.0933	0.1058	0.1059	0.1059
+100000	ordered	1	circle	0.1295	0.1729	0.2171	0.2171
+100000	ordered	2	circle	0.1198	0.14	0.1621	0.1621
+100000	ordered	3	circle	0.121	0.1465	0.157	0.157
+100000	ordered	1	narrow-time	6.9838	9.0682	9.688	9.688
+100000	ordered	2	narrow-time	6.8505	8.8291	9.2273	9.2273
+100000	ordered	3	narrow-time	6.9683	8.8428	9.7473	9.7473
+# writes 100000 ordered seconds=1.1098526 offered=293500 committed=8533 rejected=284967 maxPending=2000 maxBytes=1439600 maxOldestMs=233 DB=67309568 WAL=0
+# plan 100000 time actor [SEARCH changes USING INDEX candidate_actor_time (actor_uuid=? AND occurred_at>? AND occurred_at<?), USE TEMP B-TREE FOR ORDER BY]
+# plan 100000 time world [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# plan 100000 time circle [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# plan 100000 time narrow-time [SEARCH changes USING INDEX candidate_time (occurred_at>? AND occurred_at<?), USE TEMP B-TREE FOR ORDER BY]
+# startup 100000 time seconds=0.1577418
+100000	time	1	actor	6.1483	8.7065	8.9734	8.9734
+100000	time	2	actor	6.0781	8.1568	8.3648	8.3648
+100000	time	3	actor	6.2592	8.189	8.5211	8.5211
+100000	time	1	world	0.2068	0.2251	0.2321	0.2321
+100000	time	2	world	0.2043	0.2206	0.2372	0.2372
+100000	time	3	world	0.1725	0.2316	0.2521	0.2521
+100000	time	1	circle	0.1366	0.2004	0.2038	0.2038
+100000	time	2	circle	0.2334	0.2623	0.2677	0.2677
+100000	time	3	circle	0.2083	0.2832	0.6514	0.6514
+100000	time	1	narrow-time	0.2484	0.2903	0.2932	0.2932
+100000	time	2	narrow-time	0.2562	0.3989	0.4096	0.4096
+100000	time	3	narrow-time	0.1527	0.2657	0.2678	0.2678
+# writes 100000 time seconds=1.1310595 offered=263001 committed=7017 rejected=255984 maxPending=2000 maxBytes=1439600 maxOldestMs=277 DB=69844992 WAL=0
+# plan 100000 hybrid actor [SEARCH changes USING INDEX changes_actor_id (actor_uuid=? AND id<?)]
+# plan 100000 hybrid world [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# plan 100000 hybrid circle [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# plan 100000 hybrid narrow-time [SEARCH changes USING INDEX candidate_time (occurred_at>? AND occurred_at<?), USE TEMP B-TREE FOR ORDER BY]
+# startup 100000 hybrid seconds=0.1762171
+100000	hybrid	1	actor	0.0865	0.1879	0.2847	0.2847
+100000	hybrid	2	actor	0.1733	0.1994	0.2104	0.2104
+100000	hybrid	3	actor	0.159	0.1738	0.1858	0.1858
+100000	hybrid	1	world	0.0996	0.1266	0.174	0.174
+100000	hybrid	2	world	0.1056	0.1619	0.1752	0.1752
+100000	hybrid	3	world	0.1091	0.1974	0.2067	0.2067
+100000	hybrid	1	circle	0.2139	0.233	0.2464	0.2464
+100000	hybrid	2	circle	0.2447	0.2651	0.2855	0.2855
+100000	hybrid	3	circle	0.234	0.3308	0.3379	0.3379
+100000	hybrid	1	narrow-time	0.2199	0.6865	1.1386	1.1386
+100000	hybrid	2	narrow-time	0.1564	0.2419	0.265	0.265
+100000	hybrid	3	narrow-time	0.2007	0.2179	0.2197	0.2197
+# writes 100000 hybrid seconds=0.3324792 offered=41355 committed=2017 rejected=39338 maxPending=2000 maxBytes=1439600 maxOldestMs=105 DB=64671744 WAL=0
+# seed size=1000000 seconds=209.4463759
+# plan 1000000 position-only actor [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# plan 1000000 position-only world [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# plan 1000000 position-only circle [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# plan 1000000 position-only narrow-time [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# startup 1000000 position-only seconds=10.6324538
+1000000	position-only	1	actor	0.2788	0.2995	0.5019	0.5019
+1000000	position-only	2	actor	0.2421	0.2594	0.2599	0.2599
+1000000	position-only	3	actor	0.2277	0.2412	0.2852	0.2852
+1000000	position-only	1	world	0.1274	0.1377	0.1447	0.1447
+1000000	position-only	2	world	0.1272	0.1338	0.1463	0.1463
+1000000	position-only	3	world	0.1309	0.141	0.144	0.144
+1000000	position-only	1	circle	0.1825	0.2131	0.4387	0.4387
+1000000	position-only	2	circle	0.1901	0.2029	0.212	0.212
+1000000	position-only	3	circle	0.1957	0.26	0.2669	0.2669
+1000000	position-only	1	narrow-time	7.5221	8.9071	9.6514	9.6514
+1000000	position-only	2	narrow-time	7.6268	10.4167	10.5339	10.5339
+1000000	position-only	3	narrow-time	7.4367	10.3834	11.3583	11.3583
+# writes 1000000 position-only seconds=1.3551698 offered=325500 committed=9529 rejected=315971 maxPending=2000 maxBytes=1439600 maxOldestMs=241 DB=626479104 WAL=0
+# plan 1000000 ordered actor [SEARCH changes USING INDEX changes_actor_id (actor_uuid=? AND id<?)]
+# plan 1000000 ordered world [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# plan 1000000 ordered circle [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# plan 1000000 ordered narrow-time [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# startup 1000000 ordered seconds=1.4749147
+1000000	ordered	1	actor	0.1064	0.1869	0.19	0.19
+1000000	ordered	2	actor	0.0946	0.1387	0.1409	0.1409
+1000000	ordered	3	actor	0.0973	0.1371	0.1422	0.1422
+1000000	ordered	1	world	0.1677	0.2062	0.2192	0.2192
+1000000	ordered	2	world	0.1247	0.2006	0.2088	0.2088
+1000000	ordered	3	world	0.1931	0.2091	0.212	0.212
+1000000	ordered	1	circle	0.2547	0.282	0.3076	0.3076
+1000000	ordered	2	circle	0.2518	0.2746	0.2784	0.2784
+1000000	ordered	3	circle	0.2519	0.2984	0.3745	0.3745
+1000000	ordered	1	narrow-time	7.1179	8.7371	8.9075	8.9075
+1000000	ordered	2	narrow-time	7.9837	8.8804	9.1306	9.1306
+1000000	ordered	3	narrow-time	7.7618	9.898	226.8291	226.8291
+# writes 1000000 ordered seconds=1.4712273 offered=399000 committed=7517 rejected=391483 maxPending=2000 maxBytes=1439600 maxOldestMs=527 DB=626479104 WAL=0
+# plan 1000000 time actor [SEARCH changes USING INDEX candidate_actor_time (actor_uuid=? AND occurred_at>? AND occurred_at<?), USE TEMP B-TREE FOR ORDER BY]
+# plan 1000000 time world [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# plan 1000000 time circle [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# plan 1000000 time narrow-time [SEARCH changes USING INDEX candidate_time (occurred_at>? AND occurred_at<?), USE TEMP B-TREE FOR ORDER BY]
+# startup 1000000 time seconds=1.6050928
+1000000	time	1	actor	63.5876	76.2033	77.9186	77.9186
+1000000	time	2	actor	69.5443	77.7571	78.7358	78.7358
+1000000	time	3	actor	64.9093	71.6441	72.7824	72.7824
+1000000	time	1	world	0.2064	0.2983	0.3292	0.3292
+1000000	time	2	world	0.1787	0.2101	0.2256	0.2256
+1000000	time	3	world	0.1908	0.2097	0.2126	0.2126
+1000000	time	1	circle	0.2491	0.2737	0.285	0.285
+1000000	time	2	circle	0.2552	0.2826	0.2838	0.2838
+1000000	time	3	circle	0.2423	0.2557	0.2561	0.2561
+1000000	time	1	narrow-time	0.6522	0.8837	3.7617	3.7617
+1000000	time	2	narrow-time	0.5867	0.69	0.7132	0.7132
+1000000	time	3	narrow-time	0.5644	0.9086	0.9915	0.9915
+# writes 1000000 time seconds=8.6859264 offered=2641000 committed=23508 rejected=2617492 maxPending=2000 maxBytes=1439600 maxOldestMs=706 DB=669954048 WAL=0
+# plan 1000000 hybrid actor [SEARCH changes USING INDEX changes_actor_id (actor_uuid=? AND id<?)]
+# plan 1000000 hybrid world [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# plan 1000000 hybrid circle [SEARCH changes USING INTEGER PRIMARY KEY (rowid<?)]
+# plan 1000000 hybrid narrow-time [SEARCH changes USING INDEX candidate_time (occurred_at>? AND occurred_at<?), USE TEMP B-TREE FOR ORDER BY]
+# startup 1000000 hybrid seconds=1.5567863
+1000000	hybrid	1	actor	0.1783	0.2427	0.3236	0.3236
+1000000	hybrid	2	actor	0.0978	0.1868	0.2397	0.2397
+1000000	hybrid	3	actor	0.1751	0.2019	0.2108	0.2108
+1000000	hybrid	1	world	0.182	0.2113	0.2141	0.2141
+1000000	hybrid	2	world	0.1923	0.2203	0.2233	0.2233
+1000000	hybrid	3	world	0.1222	0.1969	0.2008	0.2008
+1000000	hybrid	1	circle	0.2511	0.2736	1.003	1.003
+1000000	hybrid	2	circle	0.2564	0.2748	0.2751	0.2751
+1000000	hybrid	3	circle	0.2608	0.2841	0.29	0.29
+1000000	hybrid	1	narrow-time	0.74	0.8098	1.0599	1.0599
+1000000	hybrid	2	narrow-time	0.7486	0.9266	3.2458	3.2458
+1000000	hybrid	3	narrow-time	0.7191	0.8136	0.9008	0.9008
+# writes 1000000 hybrid seconds=0.6682212 offered=56500 committed=2534 rejected=53966 maxPending=2000 maxBytes=1439600 maxOldestMs=136 DB=635871232 WAL=0

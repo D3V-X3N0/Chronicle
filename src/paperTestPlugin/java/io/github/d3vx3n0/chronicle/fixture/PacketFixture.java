@@ -58,7 +58,8 @@ final class PacketFixture implements Listener {
             boolean chest = args[1].contains("chest");
             boolean okay = world.getBlockAt(0, 80, 0).getType() == (chest ? Material.CHEST : Material.STONE)
                     && world.getBlockAt(0, 81, 0).getType() == Material.AIR
-                    && player.getOpenInventory().getTopInventory().getType() == org.bukkit.event.inventory.InventoryType.CRAFTING;
+                    && player.getOpenInventory().getTopInventory().getType() == (args[1].equals("logout-chest")
+                            ? org.bukkit.event.inventory.InventoryType.CHEST : org.bukkit.event.inventory.InventoryType.CRAFTING);
             if (!okay) throw new AssertionError("Inspection changed block or opened inventory: " + args[1]);
             plugin.getLogger().info("INSPECT_UNCHANGED " + args[1]); return true;
         }

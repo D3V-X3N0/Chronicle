@@ -2,23 +2,23 @@
 
 Chronicle is an early-stage activity logging and recovery project for Minecraft Paper servers. It aims to help server administrators investigate griefing, inspect block history, and recover builds through targeted rollbacks and restoration.
 
-The goal is a maintainable, performance-conscious alternative to established tools such as CoreProtect. Chronicle has no benchmark results or demonstrated performance advantage yet.
+The goal is a maintainable, performance-conscious alternative to established tools such as CoreProtect. Initial synthetic storage/query measurements exist; no performance advantage over another plugin is claimed.
 
 ## Current status
 
-**The development build records qualified player stone/air transitions in SQLite and reports durability and coverage status. Inspection, lookup and recovery are not implemented. It is not comprehensive server protection, and there is no public release.**
+**The development build records qualified player stone/air transitions in SQLite, provides read-only inspection and filtered lookup, and reports durability and coverage status. Recovery is not implemented. It is not comprehensive server protection, and there is no public release.**
 
-Milestone 1 is complete: a pinned Gradle build, strict configuration, bounded ordered capture, transactional SQLite history, explicit coverage incidents and `/chronicle status` with permission checks. Unit, file-backed database, subprocess crash and packaged-native tests run in the build. Opt-in disposable Paper tests include actual network players and exact history checks after restart. See the [capture qualification](docs/CAPTURE_QUALIFICATION.md), [storage operations](docs/STORAGE.md) and [validation evidence](docs/TESTING.md#current-m1-evidence) for the narrow supported scope. The [roadmap](docs/ROADMAP.md) tracks remaining work. The existing [MIT license](LICENSE) is preserved.
+M1 is complete and M2 investigation is implemented: historical name/UUID resolution, exact filters, bounded asynchronous readers, requester-owned pagination, permission-aware commands and presentation-only reload. Unit, file-backed database, subprocess crash and packaged-native tests run in the build. Opt-in disposable Paper tests use actual network players, protection plugins, inspection interactions and exact history/command checks after restart. See the [investigation guide](docs/INVESTIGATION.md), [capture qualification](docs/CAPTURE_QUALIFICATION.md), [storage operations](docs/STORAGE.md) and [validation evidence](docs/TESTING.md#current-m2-evidence). The [roadmap](docs/ROADMAP.md) tracks completion gates. The existing [MIT license](LICENSE) is preserved.
 
 ## Direction
 
-The initial stone/air capture and SQLite path exists. Investigation, expanded event families and recovery below remain planned.
+The stone/air capture, SQLite and investigation paths exist. Expanded event families and recovery below remain planned.
 
 Chronicle prioritises correctness and data integrity, rollback safety, performance, usability, and maintainability, in that order.
 
 - Capture supported changes on the Paper server thread and send immutable records to bounded asynchronous storage workers.
 - Start with SQLite, transactional write batches, WAL mode, and explicit reporting of write backlog and history gaps.
-- Provide player, time, world, radius, and action filters for investigation.
+- Investigate committed history using player, UTC time, world, radius/origin and action filters, with stable bounded pagination.
 - Require a preview and confirmation before rollback; skip conflicting states and record partial progress.
 - Restore only changes actually applied by a recorded rollback, with fresh conflict checks.
 - Add container, hopper, explosion, environmental, and entity logging in separately tested stages.
@@ -45,7 +45,7 @@ On Linux/macOS:
 bash ./gradlew clean build
 ```
 
-The development plugin is `build/libs/chronicle-0.1.0-SNAPSHOT.jar`. Install only that JAR in a disposable Paper 26.3 build 248 server's `plugins/` directory, restart, and run `chronicle status` from console. SQLite starts on its own worker; capture waits for `READY`. Players need an explicit `chronicle.status` grant; it defaults to false even for operators. Configuration is created at `plugins/Chronicle/config.yml`; invalid configuration disables the plugin and preserves the file. Changes require restart. History is stored at `plugins/Chronicle/history.db`; never delete a failed database or its WAL to silence an error.
+The development plugin is `build/libs/chronicle-0.1.0-SNAPSHOT.jar`. Install only that JAR in a disposable Paper 26.3 build 248 server's `plugins/` directory, restart, and run `chronicle status` from console. SQLite starts on its own worker; capture waits for `READY`. Players need explicit grants for `chronicle.status`, `chronicle.lookup`, `chronicle.inspect` or `chronicle.reload`; all default to false even for operators. See the [investigation workflow](docs/INVESTIGATION.md). Configuration is created at `plugins/Chronicle/config.yml`; invalid configuration disables the plugin and preserves the file. Only runtime-detail display and lookup page size can reload; storage settings require restart. History is stored at `plugins/Chronicle/history.db`; never delete a failed database or its WAL to silence an error.
 
 `build/libs/chronicle-0.1.0-SNAPSHOT-paper-test-plugin.jar` is a separate diagnostic fixture. Do not install it on a production server. `build` runs unit/database/crash/native tests and compiles the harness without starting Minecraft. See [development setup](docs/DEVELOPMENT.md) for the opt-in Paper test command, EULA requirement, exact artifacts and fixture limitations.
 
@@ -58,6 +58,8 @@ The development plugin is `build/libs/chronicle-0.1.0-SNAPSHOT.jar`. Install onl
 | [Roadmap](docs/ROADMAP.md) | Ordered milestones and evidence required to complete them |
 | [Development](docs/DEVELOPMENT.md) | Environment, build tasks, organisation, and conventions |
 | [Testing](docs/TESTING.md) | Correctness, failure recovery, performance, and release validation |
+| [Investigation](docs/INVESTIGATION.md) | Implemented commands, filters, permissions, inspection and reload |
+| [M2 measurements](docs/M2_MEASUREMENTS.md) | Reproducible synthetic index and mixed-load evidence, with limits |
 | [Contributing](CONTRIBUTING.md) | How to propose and review useful changes |
 
 ## Operational expectations

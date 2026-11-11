@@ -1,6 +1,61 @@
 # Testing and validation
 
-Status: M1 unit, database, crash, packaged-native and packet-driven capture/restart tests are implemented, 11 November 2026. Broader investigation/recovery/performance suites below remain planned. Actual commands and runtime setup are in [DEVELOPMENT.md](DEVELOPMENT.md).
+Status: M1 and M2 unit, database, crash, packaged-native, investigation, packet/restart and initial synthetic load checks are implemented, 11 November 2026. Broader recovery/operational performance suites below remain planned. Actual commands and runtime setup are in [DEVELOPMENT.md](DEVELOPMENT.md).
+
+## Current M2 evidence
+
+M2 retains M1's capture boundary and adds [investigation](INVESTIGATION.md). The
+implementation plan and tracked acceptance gates are in [M2_PLAN.md](M2_PLAN.md).
+
+- **Passed locally:** query filters against an independent seeded 1,004-row oracle,
+  combined actor/world/action/time scopes, exact positions and negative circle edges,
+  all heights, equal/backwards timestamps and inserts between fixed-boundary pages.
+- **Passed locally:** v1-to-v2 upgrade retains IDs/snapshots/canonical payloads and
+  backfills historical/current aliases. A late migration failure leaves no added
+  columns/tables/ledger entries; reopening after correcting the fixture succeeds.
+- **Passed locally:** ambiguous/unknown player/world identities, parameter-bound
+  hostile input, unsupported snapshot/attribution labels, cancellation during SQL,
+  expired requests, reader ownership and reuse after interruption.
+- **Passed locally:** reader admission counts queued, running and undelivered work
+  against 34 retained tasks; excess admission is rejected. Cancelled work is not
+  delivered. Cursors enforce ownership, fixed boundaries, expiry and 128 contexts.
+- **Passed locally:** paginated console investigation returned IDs `[6,5,4,3,2,1]`
+  before and after a real Paper restart, with explicit boundaries and coverage.
+  The independent SQL oracle verified the same six complete transitions and clean
+  sessions. No-op, denied, unsupported and cancelled actions added no successful rows.
+- **Passed locally:** a second separately loaded protection plugin cancelled place
+  and break at LOWEST, LOW, NORMAL, HIGH and HIGHEST. Original cancellation/build
+  denial and same-tick repeated-action fixtures remain passing.
+- **Passed locally:** actual packet-driven inspection prevented stone breaks, held
+  stone placement and chest opening; prior block/item denial returned no history,
+  and offhand generated no duplicate lookup. The real player's revoked permission
+  suppressed an already-admitted query's asynchronous result.
+- **Passed locally:** presentation reload applies validated runtime details/page size;
+  changed storage settings and malformed configuration preserve active settings.
+- **Passed on GitHub Actions:** [run 43084164874](https://github.com/D3V-X3N0/Chronicle/actions/runs/43084164874)
+  built revision `1c8d7f9` on Linux and Windows with JDK 25; all 65 tests passed with
+  no skips. This run did not start Minecraft. Final expanded checks are recorded below.
+
+Final local acceptance: JDK 25.0.1 on Windows 11, `clean build paperIntegrationTest
+paperPacketTest -PacceptMinecraftEula=true` passed with **67 tests**, zero failures,
+errors or skips. This also checks inspection-mode clearing across logout/rejoin,
+reader/capture off-thread refusal, reload permission revocation and the 64 KiB
+configuration bound. The runtime artifacts were `smoke-16162126657627125268`,
+`invalid-config-8697724743324508008` and `packets-12479402692054961932`. Plugin SHA-256:
+`0f56f61cc562636ca8047bbd796a833a26568fe9072ff1cd97c0c2c785d3d6b6`.
+Final source/CI revision is recorded after the latest pipeline completes.
+
+The first revocation fixture used Paper's scheduled command path, so it revoked
+permission before query admission. It now invokes the registered executor
+synchronously against the actual player and revokes immediately after admission,
+with network-message and drained-queue assertions. This corrects the test ordering;
+no permission safeguard was relaxed.
+
+[M2 measurements](M2_MEASUREMENTS.md) report the synthetic index/mixed-load workload
+and startup cost. These are not real-server throughput/MSPT or production capacity
+claims. Only qualified stone/air capture and the named controlled protection and
+inspection interactions are supported by this evidence. No recovery, expanded event
+family, hardware power-loss test or comprehensive third-party compatibility exists.
 
 ## Current M1 evidence
 
@@ -18,7 +73,7 @@ An earlier Linux CI attempt could not resolve the JDBC POM from Maven Central. T
 
 The final local validation artifact SHA-256 was `9098e8b0e775f58c8ee0cdd291e66e7ebe673277f577843f33fdce6e8bac8235`. Generated evidence was in `smoke-4394598689122626298`, `invalid-config-3460890698072332589` and `packets-8448338411254463529` beneath `build/paper-tests/`. These are disposable test identities/worlds, not production data. The checksum identifies the validation build at `61e41e2`; later source changes require fresh evidence.
 
-Remaining limits: only the documented stone/air transitions and controlled protection fixture are qualified; no comprehensive third-party protection matrix, hardware power-loss/disk-full test, performance claim, inventory codec, lookup or recovery capability exists. Shutdown/native-stall acknowledgement limitations are explicit in [STORAGE.md](STORAGE.md).
+Limits at the M1 revision: only the documented stone/air transitions and controlled protection fixture are qualified; no comprehensive third-party protection matrix, hardware power-loss/disk-full test, performance claim, inventory codec, lookup or recovery capability exists. Shutdown/native-stall acknowledgement limitations are explicit in [STORAGE.md](STORAGE.md).
 
 ## Historical bootstrap evidence
 

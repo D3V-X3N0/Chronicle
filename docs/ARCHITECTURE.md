@@ -1,6 +1,6 @@
 # Architecture
 
-Status: M1 capture/storage implementation exists, 11 November 2026. Qualified stone/air adapters, bounded reconciliation/writing, schema 1, lifecycle and coverage diagnostics are implemented. The broader query, codec and recovery designs below remain proposals. [Capture qualification](CAPTURE_QUALIFICATION.md), [storage operations](STORAGE.md) and [test evidence](TESTING.md#current-m1-evidence) define actual behaviour; there is no release.
+Status: M1 capture/storage and M2 investigation are implemented, 11 November 2026. Qualified stone/air adapters, bounded reconciliation/writing, schema 2, bounded readers, stable cursors, inspection and safe presentation reload exist. Broader codecs and recovery designs below remain proposals. [Investigation](INVESTIGATION.md), [capture qualification](CAPTURE_QUALIFICATION.md), [storage operations](STORAGE.md) and [test evidence](TESTING.md#current-m2-evidence) define actual behaviour; there is no release.
 
 ## Repository evidence and decisions
 
@@ -105,7 +105,7 @@ Maintain a bounded ordered observation stream per inventory identity, reconcile 
 
 ## Persistence
 
-The current implementation uses Xerial 3.54.1.0 / SQLite 3.54.1, a single connection-owning worker, no production readers, and transactional schema 1. It isolates the bundled driver because Paper supplies an older SQLite. See [STORAGE.md](STORAGE.md) for the implemented schema, failure policy and shutdown limits. Query barriers, query workers, backup tooling, pruning and operation journals below remain future work.
+The current implementation uses Xerial 3.54.1.0 / SQLite 3.54.1, one connection-owning writer, two bounded read-only workers, and transactional schema 2. It isolates the bundled driver because Paper supplies an older SQLite. See [STORAGE.md](STORAGE.md) for the implemented schema, failure policy and shutdown limits. Query workers and frozen committed-ID lookup boundaries exist. Capture barriers for mutations, backup tooling, pruning and operation journals remain future work.
 
 ### Admission, commit, and overload
 
@@ -151,14 +151,16 @@ This is a design sketch, not migration SQL. Start M1 with sessions, identities, 
 
 Enforce `UNIQUE(session_id, capture_sequence, member_index)` for idempotent insertion. The writer persists finalised capture groups in sequence order; database IDs are stable ingestion order, not wall-clock truth. Store timestamp separately for user filters; clock rollback or equal millisecond values cannot reverse causal order. A session ID orders restarts. IDs must not be reused after pruning. Partial snapshots carry explicit flags; SQL NULL cannot silently mean both air and unknown.
 
-Initial candidate indexes on `changes`:
+Initial candidate indexes on `changes` (proposals, evaluated against M2's committed-ID ordering):
 
 - `(world_id, x, y, z, id)` for inspection, state chains and conflicts.
 - `(world_id, chunk_x, chunk_z, occurred_at, id)` for bounded spatial selection.
 - `(actor_id, occurred_at, id)` for player history.
 - `(occurred_at, id)` for time queries and bounded retention.
 
-Unique capture keys and foreign-key lookup paths also need indexes. Evaluate an action/time or world/time index only against real query plans; each additional index increases write/storage costs. Radius queries select candidate chunks/bounding boxes and apply the exact squared-distance predicate, including edge and negative coordinates. Timestamp/id keyset pagination uses a fixed committed ID ceiling; wall time is a display/filter dimension, while recovery always uses capture order. Record query plans using [SQLite EXPLAIN QUERY PLAN](https://www.sqlite.org/eqp.html) during development; do not make its unstable text a production parser contract.
+Unique capture keys and foreign-key lookup paths also need indexes. Evaluate an action/time or world/time index only against real query plans; each additional index increases write/storage costs. Radius queries select candidate chunks/bounding boxes and apply the exact squared-distance predicate, including edge and negative coordinates. M2 uses descending history-ID keyset pagination with a fixed committed ID ceiling; this replaces the earlier timestamp/ID display-order proposal to retain ingestion order under equal/backwards clocks. Wall time is a filter/display dimension. Recovery remains unimplemented and must use capture order. Record query plans using [SQLite EXPLAIN QUERY PLAN](https://www.sqlite.org/eqp.html) during development; do not make its unstable text a production parser contract.
+
+M2 retains the exact-position index and adds `(actor_uuid,id)` and `(world_uuid,id)` for keyset access. [Measurements](M2_MEASUREMENTS.md) compare these with time-oriented candidates while writes continue. No production plan parser or universal index superiority is claimed. Reader budgets, cursor ownership, conservative coverage warnings and interpretation checks are specified in [INVESTIGATION.md](INVESTIGATION.md).
 
 ### Migrations, retention, and backups
 
@@ -218,7 +220,7 @@ Track capture duration/allocation, queue count/bytes/oldest age, commit latency 
 
 | Open decision | Recommended direction | Evidence / decision gate |
 | --- | --- | --- |
-| SQLite driver and schema implementation | Implemented: Xerial 3.54.1.0, isolated native loading, checksummed schema 1 | File-backed/native/crash checks in `integrationTest`; Paper runtime checks in both opted-in harnesses |
+| SQLite driver and schema implementation | Implemented: Xerial 3.54.1.0, isolated native loading, checksummed schema 2 and bounded readers | File-backed/native/crash checks in `integrationTest`; Paper runtime checks in both opted-in harnesses |
 | Reliable before/after capture | Qualified stone/air only; explicit uncertainty, no recovery eligibility | [Packet-driven M1 evidence](CAPTURE_QUALIFICATION.md); broader plugin/type matrix remains future work |
 | Block/item codecs and supported state list | Public API, explicit versioned codecs, inspect-only fallback | Round-trip fixtures per type/version before recovery support |
 | M4 transaction fidelity | Stage simple container/hopper cases; retain ambiguity | Pinned API/source inspection and real inventory interleaving fixtures |

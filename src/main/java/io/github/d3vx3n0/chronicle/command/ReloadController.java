@@ -51,5 +51,6 @@ public final class ReloadController implements AutoCloseable {
                     + "; lookup page size=" + result.settings.pageSize() + ". Existing cursors retain their page size.");
         } catch (IllegalArgumentException invalid) { InvestigationController.error(sender, invalid.getMessage()); }
     }
+    public boolean pending() { return requester != null; }
     @Override public void close() { closed = true; requester = null; completed.set(null); }
 }

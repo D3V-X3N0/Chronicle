@@ -115,6 +115,17 @@ public final class PaperPacketTest {
                 inspection(process, output, client);
                 reload(process, output, config);
                 command(process, "chronicle status");
+                client.clearMessages(); command(process, "chroniclefixture inspect logout"); awaitClient(client, "Inspection enabled");
+            }
+            await(output, process, "ChronicleTest lost connection", 10);
+            try (var rejoined = new PacketClient(port)) {
+                long deadline = System.nanoTime() + Duration.ofSeconds(15).toNanos();
+                while (!rejoined.joined() && System.nanoTime() < deadline) Thread.sleep(25);
+                require(rejoined.joined(), "player rejoined after inspection logout");
+                command(process, "chroniclefixture prepare logout-chest"); await(output, process, "PACKET_PREPARED logout-chest", 10);
+                Thread.sleep(250); rejoined.interact(80, 0); Thread.sleep(250);
+                command(process, "chroniclefixture assert logout-chest"); await(output, process, "INSPECT_UNCHANGED logout-chest", 10);
+                System.out.println("PASS logout clears inspection mode; normal chest interaction restored");
             }
             command(process, "stop");
             require(process.waitFor(30, TimeUnit.SECONDS) && process.exitValue() == 0, "clean server shutdown");

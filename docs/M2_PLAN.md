@@ -50,3 +50,12 @@ No recovery, expanded event families or release work is included.
 
 Actual evidence and measured limits will be recorded in `TESTING.md` and an M2
 investigation/load report. Planned tests are not completion evidence.
+
+## Tracking
+
+- [#5: bounded queries and identity contracts](https://github.com/D3V-X3N0/Chronicle/issues/5)
+- [#6: investigation commands and safe reload](https://github.com/D3V-X3N0/Chronicle/issues/6), depends on #5
+- [#7: runtime, restart and load qualification](https://github.com/D3V-X3N0/Chronicle/issues/7), depends on #5 and #6
+
+The [operator guide](INVESTIGATION.md), [test evidence](TESTING.md#current-m2-evidence)
+and [measurement report](M2_MEASUREMENTS.md) describe the final contracts and limits.

@@ -1,6 +1,6 @@
 # Development guide
 
-Status: M1 capture/storage is implemented, 11 November 2026. The exact qualified subset and operational limits are in [CAPTURE_QUALIFICATION.md](CAPTURE_QUALIFICATION.md) and [STORAGE.md](STORAGE.md). Lookup and recovery are not implemented. There is no public release.
+Status: M1 capture/storage and M2 investigation are implemented, 11 November 2026. The exact qualified subset and operational limits are in [CAPTURE_QUALIFICATION.md](CAPTURE_QUALIFICATION.md) and [STORAGE.md](STORAGE.md). Lookup and inspection are documented in [INVESTIGATION.md](INVESTIGATION.md); recovery is not implemented. There is no public release.
 
 ## Environment and pinned inputs
 
@@ -28,13 +28,14 @@ Use `.\gradlew.bat` on Windows or `bash ./gradlew` on Linux/macOS before these t
 | `integrationTest` | Actual file-backed SQLite, schema/lifecycle, transaction/idempotency, writer bounds/failures, subprocess kills, isolated packaged-native loading |
 | `paperTestPluginJar` | Separate disposable-server diagnostic/protection fixture |
 | `paperIntegrationTest` | Opt-in real Paper lifecycle, synthetic dispatch and invalid-config preservation |
-| `paperPacketTest` | Opt-in real TCP player actions, independent world/identity/order checks, exact durable rows after server restart |
+| `paperPacketTest` | Opt-in real TCP player actions, two protection fixtures, protected inspection, permissions, reload and exact SQL/command history after restart |
+| `historyLoadTest` | Opt-in synthetic SQLite index and concurrent-write/query measurements; disposable 10k/100k/1m histories |
 
-There are no lookup/recovery tests, benchmark task or public release tasks. Both ordinary test tasks run without Minecraft. Reports are at `build/reports/tests/test/index.html` and `build/reports/tests/integrationTest/index.html`, with XML under the corresponding `build/test-results/` directories.
+Lookup tests compare to an independent seeded oracle and check cursor ownership, cancellation and bounds. Recovery and public release tasks do not exist. `historyLoadTest -PhistorySizes=10000,100000,1000000` runs the synthetic baseline; results under `build/load-tests/` are described in [M2_MEASUREMENTS.md](M2_MEASUREMENTS.md). Both ordinary test tasks run without Minecraft. Reports are at `build/reports/tests/test/index.html` and `build/reports/tests/integrationTest/index.html`, with XML under the corresponding `build/test-results/` directories.
 
 Artifacts:
 
-- `build/libs/chronicle-0.1.0-SNAPSHOT.jar`: plugin, config, schema, MIT license and SQLite JDBC/native resources/notices. Only this JAR belongs in the evaluated server's plugins directory.
+- `build/libs/chronicle-0.1.0-SNAPSHOT.jar`: plugin, config, schemas, MIT license and SQLite JDBC/native resources/notices. Only this JAR belongs in the evaluated server's plugins directory.
 - `build/libs/chronicle-0.1.0-SNAPSHOT-paper-test-plugin.jar`: test-only fixture; never install it on production.
 
 The driver is loaded separately from Paper's older bundled JDBC. Packaging tests exercise an isolated classloader containing only the distributable and JDK classes. Both OS CI jobs load the actual native library. Archives have stable ordering/timestamps. The artifact test checks Java 25 bytecode, descriptor/version, permission defaults, license and exclusion of server/fixture classes.
@@ -57,7 +58,7 @@ bash ./gradlew paperIntegrationTest paperPacketTest -PacceptMinecraftEula=true
 
 Without acceptance, each harness fails before download or server-directory creation. The server download is pinned/checksummed. Runs create fresh worlds under `build/paper-tests/`, bind only to loopback, disable query/RCON and use at most 1 GiB heap. The packet harness uses an explicit offline test identity and an ephemeral port; it is not an authentication test. The smoke harness uses synthetic player events and does not qualify real-player behaviour.
 
-The packet harness sends actual protocol-777 actions through the server, tests a controlled protection listener, checks final world states and compares six exact committed records after shutdown and restart. See [the qualification report](CAPTURE_QUALIFICATION.md) for scenarios and limits. No downloaded server, world, database or private player data is checked in. Logs remain beneath the disposable run directories. `clean` removes those generated logs/worlds, so preserve needed evidence first.
+The packet harness sends actual protocol-777 actions through the server, tests two separate controlled protection plugins across legitimate priorities, checks final world states and compares six exact committed records through SQL and paginated commands before/after restart. Player permission revocation, inspection with held items/chests, denial, offhand, logout and reload are also exercised. See [the qualification report](CAPTURE_QUALIFICATION.md) for scenarios and limits. No downloaded server, world, database or private player data is checked in. Logs remain beneath the disposable run directories. `clean` removes those generated logs/worlds, so preserve needed evidence first.
 
 Runtime checks assert readiness/results with deadlines, not success from elapsed sleeps. Failed/expired runs terminate their child server. Tests use loopback-only disposable data, never production servers. Adding a new type/plugin interaction requires its own qualification; synthetic dispatch is insufficient.
 
@@ -71,19 +72,20 @@ src/main/java/io/github/d3vx3n0/chronicle/
   model/           # immutable copied evidence and groups
   storage/         # bounded writer, status and fixed-cardinality incidents
   storage/sqlite/  # connection ownership, schema, native-driver isolation
-  command/         # permission-gated status; no lookup
+  query/           # immutable scopes, bounded readers/completions and cursor contexts
+  command/         # permission-gated investigation, inspection, reload and status
 src/main/resources/db/  # checksummed numbered SQL migration
 src/test/java/          # unit, on-disk DB, native and subprocess checks
 src/paperTestPlugin/    # separate synthetic/packet fixture plugin
 src/paperIntegration/   # disposable-process harness and minimal real client
 ```
 
-Keep one Gradle project and explicit dependencies. No ORM, connection pool, remote backend, custom concurrency primitive or recovery subsystem is needed for M1.
+Keep one Gradle project and explicit dependencies. No ORM, connection pool, remote backend, custom concurrency primitive or recovery subsystem is introduced in M2.
 
 ## Engineering conventions
 
 - Keep domain records immutable and Paper-free. Only the owning server thread reads world/player/block APIs.
-- Never perform database/file/network I/O or wait on a future in capture. One worker owns SQLite; the shutdown wait is bounded and requires no Paper callback.
+- Never perform database/file/network I/O or wait on a future in capture. One writer and two query workers each own their SQLite connection; the shutdown wait is bounded and requires no Paper callback.
 - Preserve distinct sequence/group identities. Unknown state produces coverage uncertainty, never guessed air/empty data.
 - Bound records, payloads, reconciliation and batches. Failed admission cannot evict accepted history. Enqueue is not commit.
 - Append migrations after schema release; retain exact idempotency content and test failures/reopen before widening persisted state.
@@ -94,4 +96,4 @@ Keep one Gradle project and explicit dependencies. No ORM, connection pool, remo
 
 The pinned-action workflow runs JDK 25 `clean build` on Linux and Windows with read-only repository permissions. Ordinary push/PR builds do not start Minecraft. Manual workflow dispatch starts both Paper harnesses only with explicit EULA acceptance. Logs and test reports are retained for seven days; worlds/databases are not uploaded.
 
-Record actual commit/run results in [TESTING.md](TESTING.md#current-m1-evidence). Future M2/M3 work requires its own acceptance gates. See [CONTRIBUTING.md](../CONTRIBUTING.md) for review and licensing expectations.
+Record actual commit/run results in [TESTING.md](TESTING.md#current-m2-evidence). Future M3 work requires its own acceptance gates. See [CONTRIBUTING.md](../CONTRIBUTING.md) for review and licensing expectations.

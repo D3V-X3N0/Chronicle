@@ -89,6 +89,18 @@ val integrationTest = tasks.register<Test>("integrationTest") {
     testLogging { events("failed"); exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL }
 }
 
+tasks.register<JavaExec>("historyLoadTest") {
+    group = "verification"
+    description = "Opt-in deterministic SQLite index/mixed-load measurements in disposable databases."
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("io.github.d3vx3n0.chronicle.storage.HistoryLoad")
+    javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(25)) })
+    maxHeapSize = "512m"
+    args(layout.buildDirectory.dir("load-tests").get().asFile.absolutePath,
+        providers.gradleProperty("historySizes").orElse("10000,100000,1000000").get())
+}
+
 // The diagnostic fixture is deliberately excluded from the distributable plugin.
 val paperTestPlugin = sourceSets.create("paperTestPlugin")
 configurations[paperTestPlugin.compileOnlyConfigurationName].extendsFrom(configurations.compileOnly.get())

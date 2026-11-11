@@ -1,6 +1,6 @@
 # Product specification
 
-Status: target specification, 11 November 2026. M1 implements a qualified stone/air capture path, SQLite storage and durability/coverage status. Investigation, recovery, expanded capture and other requirements remain planned. Implemented scope and limitations are in [CAPTURE_QUALIFICATION.md](CAPTURE_QUALIFICATION.md) and [STORAGE.md](STORAGE.md); the broader interfaces/defaults below remain proposals unless the [development guide](DEVELOPMENT.md) identifies them as implemented.
+Status: target specification, 11 November 2026. M1 implements qualified stone/air capture, SQLite storage and durability/coverage status. M2 implements bounded investigation, permissions and safe presentation reload. Recovery, expanded capture and retention remain planned. Implemented scope is defined by [INVESTIGATION.md](INVESTIGATION.md), [CAPTURE_QUALIFICATION.md](CAPTURE_QUALIFICATION.md) and [STORAGE.md](STORAGE.md); broader recovery interfaces/defaults below remain proposals.
 
 ## Users and outcomes
 
@@ -49,7 +49,7 @@ Block recovery changes world blocks only. It must not generate drops or experien
 
 ## Proposed administrator workflow
 
-Only `/chronicle status` exists, reporting readiness, queue/reconciliation pressure, committed positions, coverage and runtime details. The remaining commands do not exist yet. The grammar should be validated with administrators before M2/M3 stabilise it.
+`inspect`, `lookup`, `status` and `reload` are implemented as documented in the [investigation guide](INVESTIGATION.md). The rollback, restore and operation-status examples below remain proposals and are not accepted commands. Grammar usability has been tested through scripted fixtures, not a field administrator study.
 
 ```text
 /chronicle inspect
@@ -91,7 +91,7 @@ All Chronicle permission nodes default to `false` for players, including operato
 | `chronicle.reload` | Reload permitted configuration |
 | `chronicle.alerts` | Receive rate-limited operational warnings |
 
-Completion suggests permitted subcommands, action identifiers, locally known worlds and actors, and the requester's active operation IDs. It must not trigger unbounded database scans or expose inventory text to unauthorised users. Keep permission checks separate from filter parsing. A future world-specific access policy needs its own specification; it is not implied here.
+M2 completion suggests permitted subcommands, action identifiers, at most 32 loaded worlds, a bounded recent actor-name cache and the requester's current cursor. Future recovery completion may add active operation IDs. It must not trigger unbounded database scans or expose inventory text to unauthorised users. Keep permission checks separate from filter parsing. A future world-specific access policy needs its own specification; it is not implied here.
 
 Use concise Adventure messages with plain-text fallbacks for console, readable timestamps, clickable next-page/preview actions where appropriate, and a reason plus remedy for errors. Never insert untrusted names, item text, or database errors as executable commands or unescaped formatting.
 
@@ -120,7 +120,7 @@ An oversized group may exceed the normal batch target only within the hard group
 
 ## Non-functional requirements and exclusions
 
-No filesystem/database/network I/O or blocking future waits in capture or world-apply callbacks. All queues, caches, query results, and operation plans have limits. Historical IDs and schema versions remain stable; unknown codecs fail safely. Diagnostics must expose coverage loss even when gameplay continues. See [testing](TESTING.md) for measurable indicators and evidence gates; there are no claimed throughput or latency results.
+No filesystem/database/network I/O or blocking future waits in capture or world-apply callbacks. All queues, caches, query results, and operation plans have limits. Historical IDs and schema versions remain stable; unknown codecs fail safely. Diagnostics must expose coverage loss even when gameplay continues. See [testing](TESTING.md) for evidence gates and [M2 measurements](M2_MEASUREMENTS.md) for the limited synthetic baseline; no production capacity or superiority is claimed.
 
 Chronicle is not a backup system, anticheat, permissions/claims plugin, or replacement for server access controls. Chat, commands, IP addresses, private messages, and unrelated player telemetry are outside scope. Do not add telemetry collection by default. Staff must control access to history, item metadata, backups, and the plugin directory.
 

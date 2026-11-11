@@ -36,3 +36,17 @@ Observations resolve in capture order. A matching next pre-state or bounded late
 This is a qualified public-event observation contract, not a universal world transaction log. A plugin that changes events after MONITOR, directly changes blocks without events, or changes a block away and back between observations can defeat attribution/finality. The test setup contains only Chronicle and its controlled fixture. Containers, block entities, multi-block structures, physics, fluids and all other materials are unsupported; unsupported actions produce aggregate global coverage incidents. Missing events cannot be detected universally. Neither complete server coverage nor reversibility is claimed.
 
 Pure reconciliation tests cover cancelled/denied attempts, no-ops, unsupported replacement/multi-place, ambiguous/unavailable/expired states, overflow, shutdown and ordering across locations. Synthetic dispatch remains a separate lifecycle/routing test and is not the evidence above.
+
+## M2 investigation qualification
+
+M2 retains the same successful transition/state list and recovery exclusion. Its
+packet harness adds a second separately loaded protection fixture cancelling both
+action types at each legitimate priority (LOWEST through HIGHEST). It also checks
+paginated investigation before/after restart, post-admission permission revocation,
+protected stone/chest inspection with held items, left/right clicks and offhand,
+and validated reload. See [INVESTIGATION.md](INVESTIGATION.md) for the exact interaction
+boundary and [current M2 evidence](TESTING.md#current-m2-evidence) for validation.
+
+These controlled plugins do not establish compatibility with every third-party
+protection implementation. Later handlers that reverse Chronicle's inspection denials
+at HIGHEST, or violate MONITOR conventions, remain outside the qualification.
