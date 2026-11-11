@@ -96,8 +96,10 @@ public final class SqliteStore implements HistoryStore {
         return session;
     }
 
-    private static String migration() throws IOException {
-        try (var input = SqliteStore.class.getResourceAsStream("/db/001-foundation.sql")) {
+    public static final int SCHEMA_VERSION = 2;
+    private static String migration(int version) throws IOException {
+        String resource = version == 1 ? "001-foundation.sql" : "002-investigation.sql";
+        try (var input = SqliteStore.class.getResourceAsStream("/db/" + resource)) {
             if (input == null) throw new IOException("Missing migration resource");
             return new String(input.readAllBytes(), StandardCharsets.UTF_8).replace("\r\n", "\n");
         }
@@ -108,28 +110,37 @@ public final class SqliteStore implements HistoryStore {
     }
     private void validateSchema() throws SQLException, IOException {
         int version = Integer.parseInt(scalar("PRAGMA user_version"));
-        if (version > 1 || version < 0) throw new SQLException("Unsupported schema version " + version + "; database preserved");
+        if (version > SCHEMA_VERSION || version < 0) throw new SQLException("Unsupported schema version " + version + "; database preserved");
         if (version == 0) {
             if (!scalar("SELECT count(*) FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'").equals("0"))
                 throw new SQLException("Unversioned/partial schema; database preserved");
         } else {
-            if (!scalar("SELECT count(*) FROM schema_migrations").equals("1")) throw new SQLException("Partial migration ledger");
-            try (var statement = connection.prepareStatement("SELECT checksum FROM schema_migrations WHERE version=1"); var result = statement.executeQuery()) {
-                if (!result.next() || !result.getString(1).equals(checksum(migration()))) throw new SQLException("Applied migration checksum mismatch");
+            if (!scalar("SELECT count(*) FROM schema_migrations").equals(Integer.toString(version))) throw new SQLException("Partial migration ledger");
+            for (int applied = 1; applied <= version; applied++) {
+                try (var statement = connection.prepareStatement("SELECT checksum FROM schema_migrations WHERE version=?")) {
+                    statement.setInt(1, applied);
+                    try (var result = statement.executeQuery()) {
+                        if (!result.next() || !result.getString(1).equals(checksum(migration(applied)))) throw new SQLException("Applied migration checksum mismatch");
+                    }
+                }
             }
         }
     }
     private void migrate() throws SQLException, IOException {
-        if (!scalar("PRAGMA user_version").equals("0")) return;
-        String sql = migration();
+        int version = Integer.parseInt(scalar("PRAGMA user_version"));
+        if (version == SCHEMA_VERSION) return;
         connection.setAutoCommit(false);
         try {
-            execute("CREATE TABLE schema_migrations(version INTEGER PRIMARY KEY, checksum TEXT NOT NULL)");
-            for (String statement : sql.split(";")) if (!statement.isBlank()) execute(statement);
-            try (var statement = connection.prepareStatement("INSERT INTO schema_migrations VALUES(1,?)")) {
-                statement.setString(1, checksum(sql)); statement.executeUpdate();
+            if (version == 0) execute("CREATE TABLE schema_migrations(version INTEGER PRIMARY KEY, checksum TEXT NOT NULL)");
+            for (int next = version + 1; next <= SCHEMA_VERSION; next++) {
+                String sql = migration(next);
+                for (String statement : sql.split(";")) if (!statement.isBlank()) execute(statement);
+                try (var statement = connection.prepareStatement("INSERT INTO schema_migrations VALUES(?,?)")) {
+                    statement.setInt(1, next); statement.setString(2, checksum(sql)); statement.executeUpdate();
+                }
+                execute("PRAGMA user_version=" + next);
             }
-            execute("PRAGMA user_version=1"); connection.commit(); connection.setAutoCommit(true);
+            connection.commit(); connection.setAutoCommit(true);
         } catch (SQLException | RuntimeException | Error failure) { rollback(failure); throw failure; }
     }
 
@@ -141,6 +152,7 @@ public final class SqliteStore implements HistoryStore {
         connection.setAutoCommit(false);
         try (var world = connection.prepareStatement("INSERT INTO worlds VALUES (?,?) ON CONFLICT(uuid) DO UPDATE SET last_name=excluded.last_name");
                 var actor = connection.prepareStatement("INSERT INTO actors VALUES (?,'PLAYER',?) ON CONFLICT(uuid) DO UPDATE SET last_name=excluded.last_name");
+                var alias = connection.prepareStatement("INSERT INTO actor_names VALUES (?,?) ON CONFLICT DO NOTHING");
                 var groupInsert = connection.prepareStatement("INSERT INTO capture_groups VALUES (?,?,?) ON CONFLICT DO NOTHING");
                 var groupRead = connection.prepareStatement("SELECT member_count FROM capture_groups WHERE session_id=? AND sequence=?");
                 var insert = connection.prepareStatement("""
@@ -159,6 +171,7 @@ public final class SqliteStore implements HistoryStore {
                     BlockChange change = group.changes().get(member);
                     world.setString(1, change.world().toString()); world.setString(2, change.worldName()); world.executeUpdate();
                     actor.setString(1, change.actor().toString()); actor.setString(2, change.actorName()); actor.executeUpdate();
+                    alias.setString(1, change.actorName()); alias.setString(2, change.actor().toString()); alias.executeUpdate();
                     byte[] payload = canonical(group, member);
                     int p = 1;
                     insert.setLong(p++, session); insert.setLong(p++, group.sequence()); insert.setInt(p++, member);
