@@ -9,4 +9,4 @@ Scope: issues [#1](https://github.com/D3V-X3N0/Chronicle/issues/1), [#2](https:/
 
 Validation: JDK 25 `clean build`; opted-in local Paper smoke and packet-client tests; documentation/link checks; ordinary commits/pushes and Linux/Windows CI. Any unpassed acceptance gate remains open with evidence. Development defaults are bounds, not measured capacity promises.
 
-Local implementation/validation completed: all four steps, 52 build tests, both smoke cases and ten packet scenarios with exact history after restart. Linux/Windows CI and tracker closure follow the implementation push. See [current evidence](TESTING.md#current-m1-evidence).
+Completed on 11 November 2026: all four steps, 54 build tests, both local smoke cases and ten local packet scenarios with exact history after restart. Linux and Windows CI passed the final code revision `61e41e2`, including packaged-native loading. M1 is complete for the documented stone/air subset; no M2 or recovery work was included. See [current evidence](TESTING.md#current-m1-evidence).

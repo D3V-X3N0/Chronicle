@@ -8,7 +8,7 @@ The goal is a maintainable, performance-conscious alternative to established too
 
 **The development build records qualified player stone/air transitions in SQLite and reports durability and coverage status. Inspection, lookup and recovery are not implemented. It is not comprehensive server protection, and there is no public release.**
 
-Implemented: a pinned Gradle build, strict configuration, bounded ordered capture, transactional SQLite history, explicit coverage incidents and `/chronicle status` with permission checks. Unit, file-backed database, subprocess crash and packaged-native tests run in the build. Opt-in disposable Paper tests include actual network players and exact history checks after restart. See the [capture qualification](docs/CAPTURE_QUALIFICATION.md) and [storage operations](docs/STORAGE.md) for the narrow supported scope. The [roadmap](docs/ROADMAP.md) tracks remaining work. The existing [MIT license](LICENSE) is preserved.
+Milestone 1 is complete: a pinned Gradle build, strict configuration, bounded ordered capture, transactional SQLite history, explicit coverage incidents and `/chronicle status` with permission checks. Unit, file-backed database, subprocess crash and packaged-native tests run in the build. Opt-in disposable Paper tests include actual network players and exact history checks after restart. See the [capture qualification](docs/CAPTURE_QUALIFICATION.md), [storage operations](docs/STORAGE.md) and [validation evidence](docs/TESTING.md#current-m1-evidence) for the narrow supported scope. The [roadmap](docs/ROADMAP.md) tracks remaining work. The existing [MIT license](LICENSE) is preserved.
 
 ## Direction
 
@@ -64,4 +64,4 @@ The development plugin is `build/libs/chronicle-0.1.0-SNAPSHOT.jar`. Install onl
 
 Chronicle is intended to complement world backups. An asynchronous queue can lose uncommitted records on a crash, and a database transaction cannot atomically commit a Minecraft world save. The design makes those limits visible and requires cautious recovery rather than promising lossless logging or universal undo.
 
-There are no release dates or claims of production adoption. Progress will be recorded through real implementation, tests, issues, and releases. Contributions should start with the [first actionable development task](docs/ROADMAP.md#first-development-task).
+There are no release dates or claims of production adoption. Progress is recorded through implementation, tests and issues. Future contributions should follow the [roadmap dependencies](docs/ROADMAP.md#milestone-2--functional-logging-and-investigation).

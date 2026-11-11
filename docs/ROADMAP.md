@@ -1,6 +1,6 @@
 # Development roadmap
 
-Status: M1 implementation and local validation are complete; final Linux/Windows CI verification and tracker closure are pending. There are no delivery dates. Dependencies and evidence determine progress. The [product specification](PRODUCT_SPEC.md) defines what may eventually be advertised, and [architecture](ARCHITECTURE.md) records the proposed design and open decisions.
+Status: M1 is complete for the qualified direct-player stone/air subset, with local Paper/restart evidence and passing Linux/Windows CI on 11 November 2026. M2 lookup and all recovery work remain unimplemented. There are no delivery dates. Dependencies and evidence determine progress. The [product specification](PRODUCT_SPEC.md) defines what may eventually be advertised, and [architecture](ARCHITECTURE.md) records the proposed design and open decisions.
 
 The main path is **M1 -> M2 -> M3 -> M5 -> M6**. M4 builds on M2's capture contracts and uses M3's safety model for any recovery research. Expanded families can be promoted separately after their tests pass; M4 is not permission to delay core correctness until M5. Tests, diagnostics, and basic failure handling start in M1.
 
@@ -21,35 +21,37 @@ The separate synthetic fixture remains diagnostic. Production capture now admits
 
 ### Tracked foundation work
 
-The [Milestone 1 tracker](https://github.com/D3V-X3N0/Chronicle/milestone/1) contains the concrete remaining work. Issue closure follows the M1 evidence, including Linux/Windows native-loading checks; bootstrap evidence alone does not close them.
+The [Milestone 1 tracker](https://github.com/D3V-X3N0/Chronicle/milestone/1) records the completed foundation work. Its acceptance criteria are supported by [current M1 evidence](TESTING.md#current-m1-evidence), including real-player restart fixtures, failure tests and Linux/Windows native loading.
 
-| Issue | Dependency |
+| Completed issue | Dependency and evidence |
 | --- | --- |
 | [#1: Qualify real-player block placement and break capture](https://github.com/D3V-X3N0/Chronicle/issues/1) | Qualified packet fixtures and controlled protection-listener evidence |
 | [#2: Implement SQLite lifecycle and versioned foundation schema](https://github.com/D3V-X3N0/Chronicle/issues/2) | Implemented after #1: schema, lifecycle, isolated JDBC and native checks |
 | [#3: Implement bounded transactional history writer and failure handling](https://github.com/D3V-X3N0/Chronicle/issues/3) | Implemented after #2: bounded writer and failure/crash tests |
-| [#4: Connect qualified block capture to durable history and status](https://github.com/D3V-X3N0/Chronicle/issues/4) | Implemented after #1?#3: exact history and status after restart |
+| [#4: Connect qualified block capture to durable history and status](https://github.com/D3V-X3N0/Chronicle/issues/4) | Implemented after #1, #2 and #3: exact history and status after restart |
 
 ## Milestone 1 — Foundation and capture contract
 
 **Depends on:** the documentation baseline and the first task above.
 
+**Complete:** code revision `61e41e2`; [validation and limits](TESTING.md#current-m1-evidence).
+
 Tasks:
 
-- Establish source/package boundaries and constructor wiring, validated configuration, readiness states, and safe lifecycle cleanup.
-- Select and package a maintained SQLite JDBC driver; verify native loading on Windows and Linux, engine version, WAL and FULL settings.
-- Implement schema version 1, migration checksums, stable identities, sessions, capture keys, history records and coverage incidents.
-- Add bounded reconciliation/admission queues, a single writer, transactional prepared batches, commit acknowledgement, and observable overflow/error states.
-- Capture a small qualified subset of direct player placement/breaking. Mark unsupported states inspect-only or unsupported with reasons.
-- Add database integration and unit tests as each contract appears. Create the build/test CI workflow and document actual task names.
+- [x] Establish source/package boundaries and constructor wiring, validated configuration, readiness states, and safe lifecycle cleanup.
+- [x] Select and package a maintained SQLite JDBC driver; verify native loading on Windows and Linux, engine version, WAL and FULL settings.
+- [x] Implement schema version 1, migration checksums, stable identities, sessions, capture keys, history records and coverage incidents.
+- [x] Add bounded reconciliation/admission queues, a single writer, transactional prepared batches, commit acknowledgement, and observable overflow/error states.
+- [x] Capture a small qualified subset of direct player placement/breaking. Mark unsupported states inspect-only or unsupported with reasons.
+- [x] Add database integration and unit tests as each contract appears. Create the build/test CI workflow and document actual task names.
 
 Exit criteria:
 
-- A fresh database initialises, closes and reopens without changing committed records; a newer schema or invalid config is rejected without destructive reset.
-- Supported fixture changes have correct UUIDs, coordinates, order, old/new snapshots and unique keys; cancelled/denied changes do not appear as successful.
-- Retrying an uncertain commit cannot duplicate a row. A failed batch cannot leave half a group stored.
-- Overflow, storage failure and a forced shutdown timeout are visible; memory remains bounded, and the session is not falsely marked clean.
-- A clean shutdown drains accepted work within its configured deadline in the test workload. Real-server checks demonstrate no database I/O in capture callbacks.
+- [x] A fresh database initialises, closes and reopens without changing committed records; a newer schema or invalid config is rejected without destructive reset.
+- [x] Supported fixture changes have correct UUIDs, coordinates, order, old/new snapshots and unique keys; cancelled/denied changes do not appear as successful.
+- [x] Retrying an uncertain commit cannot duplicate a row. A failed batch cannot leave half a group stored.
+- [x] Overflow, storage failure and a forced shutdown timeout are visible; memory remains bounded, and the session is not falsely marked clean.
+- [x] A clean shutdown drains accepted work within its configured deadline in the test workload. Real-server checks demonstrate no database I/O in capture callbacks.
 
 **Risk gate:** if public events cannot establish a reliable transition for a proposed type, narrow its eligibility instead of claiming exact logging. This decision is required before M2 expands capture.
 
