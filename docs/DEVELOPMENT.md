@@ -103,7 +103,7 @@ Future storage, model, capture, query and rollback packages follow [architecture
 
 ## CI and review
 
-The build workflow pins action revisions, runs JDK 25 builds on Linux and Windows, verifies the Wrapper, and uses read-only repository permissions. Ordinary PR/push builds never start Minecraft. A manually dispatched workflow can run Paper tests only when its EULA acceptance input is explicitly selected. CI configuration is implemented; do not claim a remote run passed until GitHub has actually run it.
+The build workflow pins action revisions, runs JDK 25 builds on Linux and Windows, verifies the Wrapper, and uses read-only repository permissions. Ordinary PR/push builds never start Minecraft. A manually dispatched workflow can run Paper tests only when its EULA acceptance input is explicitly selected. The first remote Linux/Windows build passed; see [recorded evidence](TESTING.md#current-build-evidence) for the exact commit and run. Check GitHub's result for each later revision before claiming it passed.
 
 Workflow artifacts retain JARs, unit-test reports and runtime console logs for seven days, including failed runs. World data is not uploaded. Local Windows unit and Paper results are recorded in [TESTING.md](TESTING.md#current-build-evidence).
 

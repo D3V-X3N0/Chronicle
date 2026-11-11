@@ -8,7 +8,8 @@ Status: the bootstrap tests and harness are implemented, 11 November 2026. The b
 - **Passed locally:** invoking `paperIntegrationTest` without acceptance fails before server download/startup and creates no server directory.
 - **Passed locally after explicit EULA acceptance:** Paper 26.3 build 248 loaded the packaged plugin, executed the real console status command, passed synthetic event/permission assertions, and shut down cleanly. A second fresh server rejected configuration version 999, kept the file intact, and shut down successfully.
 - **Passed locally:** an offline forced rebuild of the main JAR produced the same SHA-256, `18f8ddb2fc4baece5e1375142da8c03c07a404ea4611c48de3c881523c4436ef`, as the artifact used in the passing runtime checks. This establishes repeatability in the measured environment, not cross-machine byte identity.
-- **Not yet verified:** GitHub's configured Linux/Windows jobs, real-player packet-driven capture, protection-plugin integration, database persistence, crash recovery or performance targets.
+- **Passed on GitHub Actions:** the Linux and Windows jobs in [bootstrap run 43067402499](https://github.com/D3V-X3N0/Chronicle/actions/runs/43067402499) built commit `1a543d4` with JDK 25, verified the Wrapper, ran `clean build`, and uploaded artifacts/test reports. This push run did not start Paper; runtime evidence above is local. Check the [Build workflow](https://github.com/D3V-X3N0/Chronicle/actions/workflows/build.yml) for subsequent revisions.
+- **Not yet verified:** real-player packet-driven capture, protection-plugin integration, database persistence, crash recovery or performance targets.
 
 The separately packaged `ChronicleFixture` observes attempts at `MONITOR`, including cancellation and build denial, and labels later samples as observations rather than event post-states. The passing synthetic runtime cases produced:
 
