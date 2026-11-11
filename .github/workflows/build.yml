@@ -43,7 +43,7 @@ jobs:
       - name: Run opt-in Paper smoke tests
         if: github.event_name == 'workflow_dispatch' && inputs.accept_minecraft_eula
         shell: bash
-        run: bash ./gradlew paperIntegrationTest -PacceptMinecraftEula=true --no-daemon --console=plain
+        run: bash ./gradlew paperIntegrationTest paperPacketTest -PacceptMinecraftEula=true --no-daemon --console=plain
       - name: Retain build artifacts and test evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -53,6 +53,7 @@ jobs:
           if-no-files-found: ignore
           path: |
             build/libs/*.jar
-            build/reports/tests/test/**
-            build/test-results/test/*.xml
+            build/reports/tests/**
+            build/test-results/**/*.xml
             build/paper-tests/*/console.log
+            build/paper-tests/*/restart.log

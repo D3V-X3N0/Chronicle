@@ -73,4 +73,16 @@ class ChronicleConfigTest {
     private static Map<String, Object> validConfig(boolean visible) {
         return new HashMap<>(Map.of("config-version", 1, "diagnostics.show-runtime-details", visible));
     }
+
+    @ParameterizedTest @ValueSource(ints = {0, -1, 100001})
+    void rejectsOutOfRangeStorageLimits(int limit) {
+        var values = validConfig(true); values.put("storage.max-records", limit);
+        assertThrows(IllegalArgumentException.class, () -> ChronicleConfig.from(values));
+    }
+    @Test void rejectsCoercedStorageAndBatchLargerThanQueue() {
+        var values = validConfig(true); values.put("storage.max-records", "1000");
+        assertThrows(IllegalArgumentException.class, () -> ChronicleConfig.from(values));
+        values.put("storage.max-records", 10); values.put("storage.batch-records", 11);
+        assertThrows(IllegalArgumentException.class, () -> ChronicleConfig.from(values));
+    }
 }

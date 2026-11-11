@@ -1,6 +1,6 @@
 # Development roadmap
 
-Status: the first build is implemented and Milestone 1 is in progress; no milestone is complete. There are no delivery dates. Dependencies and evidence determine progress. The [product specification](PRODUCT_SPEC.md) defines what may eventually be advertised, and [architecture](ARCHITECTURE.md) records the proposed design and open decisions.
+Status: M1 implementation and local validation are complete; final Linux/Windows CI verification and tracker closure are pending. There are no delivery dates. Dependencies and evidence determine progress. The [product specification](PRODUCT_SPEC.md) defines what may eventually be advertised, and [architecture](ARCHITECTURE.md) records the proposed design and open decisions.
 
 The main path is **M1 -> M2 -> M3 -> M5 -> M6**. M4 builds on M2's capture contracts and uses M3's safety model for any recovery research. Expanded families can be promoted separately after their tests pass; M4 is not permission to delay core correctness until M5. Tests, diagnostics, and basic failure handling start in M1.
 
@@ -12,23 +12,23 @@ Implementation plan and current progress:
 
 1. **Implemented:** Gradle 9.9.1 with verified Wrapper/distribution, Java 25 toolchain, Paper API `26.3.build.248-stable`, matching server checksum, dependency locks and SHA-256 verification.
 2. **Implemented:** a single-project Kotlin DSL build, `plugin.yml`, lifecycle entry point, strict configuration and a permission-gated status command under `io.github.d3vx3n0.chronicle`. Both the main JAR and a separate diagnostic-fixture JAR build successfully.
-3. **Implemented and verified:** 23 passing JUnit tests, packaged-artifact checks, an identical local offline JAR rebuild, and successful local Paper lifecycle/synthetic-fixture/invalid-configuration runs. GitHub Actions also passed the build/test jobs on Linux and Windows for bootstrap commit `1a543d4`. Evidence is tracked in [TESTING.md](TESTING.md#current-build-evidence).
-4. **Synthetic fixture passed; real-player qualification pending:** controlled stone placement/breaking, cancelled/denied attempts and repeated same-tick changes. The real Paper fixture dispatches synthetic player events; a real-player capture-contract investigation remains necessary before production logging. No rollback or universal state codec has been started.
+3. **Implemented and verified:** 23 passing JUnit tests, packaged-artifact checks, an identical local offline JAR rebuild, and successful local Paper lifecycle/synthetic-fixture/invalid-configuration runs. GitHub Actions also passed the build/test jobs on Linux and Windows for bootstrap commit `1a543d4`. Evidence is tracked in [TESTING.md](TESTING.md#historical-bootstrap-evidence).
+4. **Real-client qualification passed locally:** actual loopback player packets on the pinned server exercise survival/creative stone placement/breaking, protection cancellation, build denial, replacement/no-op and same-tick repetition. Exact ordered durable rows survive server restart. [The report](CAPTURE_QUALIFICATION.md) defines the limits. No rollback or universal state codec has been started.
 
 Completion evidence: a clean checkout builds with only the documented JDK and Wrapper; the plugin loads/unloads in the disposable server; no production world is used; cancellation yields no successful-change record; the observation report identifies any unprovable intermediate state. This provides a reproducible foundation and removes the riskiest assumption before schema design hardens.
 
-The first build records diagnostic attempts only in the separate fixture, including cancelled attempts. It creates no successful-change history records. The next implementation step is to complete actual player/protection-plugin observation on the pinned runtime, document eligible transitions and uncertainty, then add the SQLite lifecycle/schema/write queue. M1 remains incomplete until the exit criteria below pass.
+The separate synthetic fixture remains diagnostic. Production capture now admits only qualified stone/air transitions after bounded reconciliation. SQLite, schema 1, bounded transactional writing and status are implemented; see [storage operations](STORAGE.md) and [current evidence](TESTING.md#current-m1-evidence).
 
 ### Tracked foundation work
 
-The [Milestone 1 tracker](https://github.com/D3V-X3N0/Chronicle/milestone/1) contains the concrete remaining work. These issues are open; the bootstrap commit does not close them.
+The [Milestone 1 tracker](https://github.com/D3V-X3N0/Chronicle/milestone/1) contains the concrete remaining work. Issue closure follows the M1 evidence, including Linux/Windows native-loading checks; bootstrap evidence alone does not close them.
 
 | Issue | Dependency |
 | --- | --- |
-| [#1: Qualify real-player block placement and break capture](https://github.com/D3V-X3N0/Chronicle/issues/1) | Existing diagnostic fixture; actual clients/protection-plugin evidence still needed |
-| [#2: Implement SQLite lifecycle and versioned foundation schema](https://github.com/D3V-X3N0/Chronicle/issues/2) | Final history-record semantics follow #1; driver/lifecycle preparation can proceed independently |
-| [#3: Implement bounded transactional history writer and failure handling](https://github.com/D3V-X3N0/Chronicle/issues/3) | #2 and the capture semantics from #1 |
-| [#4: Connect qualified block capture to durable history and status](https://github.com/D3V-X3N0/Chronicle/issues/4) | #1, #2 and #3 |
+| [#1: Qualify real-player block placement and break capture](https://github.com/D3V-X3N0/Chronicle/issues/1) | Qualified packet fixtures and controlled protection-listener evidence |
+| [#2: Implement SQLite lifecycle and versioned foundation schema](https://github.com/D3V-X3N0/Chronicle/issues/2) | Implemented after #1: schema, lifecycle, isolated JDBC and native checks |
+| [#3: Implement bounded transactional history writer and failure handling](https://github.com/D3V-X3N0/Chronicle/issues/3) | Implemented after #2: bounded writer and failure/crash tests |
+| [#4: Connect qualified block capture to durable history and status](https://github.com/D3V-X3N0/Chronicle/issues/4) | Implemented after #1?#3: exact history and status after restart |
 
 ## Milestone 1 — Foundation and capture contract
 

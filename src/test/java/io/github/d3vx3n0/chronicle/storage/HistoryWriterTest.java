@@ -88,7 +88,32 @@ class HistoryWriterTest {
         assertFalse(writer.stop()); assertEquals(1, writer.status().pendingRecords()); assertEquals(0, writer.status().committed());
         assertTrue(writer.status().failure().contains("injected I/O")); assertEquals("0", SqliteStoreTest.query(db, "SELECT count(*) FROM changes"));
     }
-    private static final class DelayedStore implements HistoryStore {
+    @Test void oldestPendingAgeAdvancesAfterEarlierBatchCommits() throws Exception {
+        Path db = directory.resolve("age.db");
+        var firstEntered = new CountDownLatch(1); var firstRelease = new CountDownLatch(1);
+        var secondEntered = new CountDownLatch(1); var secondRelease = new CountDownLatch(1);
+        var clock = new java.util.concurrent.atomic.AtomicLong(1_000_000_000L);
+        var writer = new HistoryWriter(settings(10, 100_000, 3000), () -> new DelayedStore(new SqliteStore(db, 30),
+                firstEntered, firstRelease, false) {
+            @Override public long write(List<CaptureGroup> groups, List<Incident> incidents, boolean clean, long stoppedAt) throws SQLException {
+                if (!groups.isEmpty() && groups.getFirst().sequence() == 2) {
+                    secondEntered.countDown();
+                    try { if (!secondRelease.await(5, TimeUnit.SECONDS)) throw new SQLException("second gate timeout"); }
+                    catch (InterruptedException error) { Thread.currentThread().interrupt(); throw new SQLException(error); }
+                }
+                return super.write(groups, incidents, clean, stoppedAt);
+            }
+        }, "test", message -> {}, clock::get);
+        try {
+            await(() -> writer.status().state() == HistoryWriter.State.READY);
+            assertTrue(writer.offer(SqliteStoreTest.group(1, 1))); assertTrue(firstEntered.await(3, TimeUnit.SECONDS));
+            clock.set(3_000_000_000L); assertTrue(writer.offer(SqliteStoreTest.group(2, 1)));
+            clock.set(5_000_000_000L); assertEquals(4000, writer.status().oldestMillis());
+            firstRelease.countDown(); assertTrue(secondEntered.await(3, TimeUnit.SECONDS));
+            assertEquals(1, writer.status().committed()); assertEquals(2000, writer.status().oldestMillis());
+        } finally { firstRelease.countDown(); secondRelease.countDown(); assertTrue(writer.stop()); }
+    }
+    private static class DelayedStore implements HistoryStore {
         private final SqliteStore delegate;
         private final CountDownLatch entered, release;
         private final boolean fail;

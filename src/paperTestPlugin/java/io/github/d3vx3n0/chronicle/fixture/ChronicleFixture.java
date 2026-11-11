@@ -35,9 +35,14 @@ public final class ChronicleFixture extends JavaPlugin implements Listener {
     private boolean cancelBreak;
     private boolean runningSyntheticCases;
     private int multiPlaceSkipped;
+    private PacketFixture packetFixture;
 
     @Override
     public void onEnable() {
+        if (Boolean.getBoolean("chronicle.fixture.packets")) {
+            packetFixture = new PacketFixture(this);
+            getServer().getPluginManager().registerEvents(packetFixture, this);
+        }
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getScheduler().runTaskTimer(this, this::sampleLaterStates, 1, 1);
         getLogger().warning("Diagnostic fixture only: cancelled attempts are included; later samples are NOT event post-states.");
@@ -112,6 +117,7 @@ public final class ChronicleFixture extends JavaPlugin implements Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (packetFixture != null && packetFixture.command(sender, args)) return true;
         if (!sender.hasPermission("chronicle.fixture")) {
             sender.sendMessage(Component.text("You need chronicle.fixture to view diagnostic attempts."));
             return true;
@@ -128,6 +134,7 @@ public final class ChronicleFixture extends JavaPlugin implements Listener {
             require(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("Chronicle")).isEnabled(), "Chronicle enabled");
             require(Bukkit.getMinecraftVersion().equals("26.3"), "pinned Minecraft version");
             checkCommands();
+            verifyThreadGuard();
             var world = Bukkit.getWorlds().getFirst();
             var origin = world.getSpawnLocation().clone().add(0, 5, 0);
             var player = (Player) Proxy.newProxyInstance(Player.class.getClassLoader(), new Class<?>[] {Player.class},
@@ -189,6 +196,21 @@ public final class ChronicleFixture extends JavaPlugin implements Listener {
         messages.clear();
         command.execute(sender(messages, false), "chronicle", new String[] {"status"});
         require(messages.stream().noneMatch(message -> message.contains("Runtime:")), "unauthorised runtime information hidden");
+    }
+
+    private void verifyThreadGuard() throws Exception {
+        var chronicle = Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("Chronicle"));
+        var capture = org.bukkit.event.HandlerList.getRegisteredListeners(chronicle).stream()
+                .map(org.bukkit.plugin.RegisteredListener::getListener)
+                .filter(listener -> listener.getClass().getSimpleName().equals("PaperBlockCapture")).findFirst().orElseThrow();
+        var failure = new java.util.concurrent.atomic.AtomicReference<Throwable>();
+        Thread thread = Thread.ofPlatform().name("chronicle-fixture-thread-guard").start(() -> {
+            try { capture.getClass().getMethod("breaking", BlockBreakEvent.class).invoke(capture, new Object[] {null}); }
+            catch (ReflectiveOperationException exception) { failure.set(exception.getCause()); }
+        });
+        thread.join(1000);
+        require(!thread.isAlive() && failure.get() instanceof IllegalStateException
+                && failure.get().getMessage().contains("server thread"), "off-thread capture refuses before touching event/world");
     }
 
     private static CommandSender sender(List<String> messages, boolean permission) {

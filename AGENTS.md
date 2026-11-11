@@ -6,7 +6,7 @@ These instructions apply throughout the repository. Keep shared agent guidance h
 
 Chronicle is a planned Minecraft Paper activity logging and recovery plugin. Priorities, in order: correctness and data integrity, rollback safety, performance, usability, maintainability.
 
-The first bootstrap build now exists: Gradle Wrapper, Java plugin lifecycle, strict settings, status command, JUnit tests, CI configuration and a separate event-observation fixture/harness. Persistent logging, SQLite and rollback are not implemented, and there is no release. Inspect the checkout and current test evidence before relying on this status; update it as implementation changes.
+M1 implementation now includes qualified direct-player stone/air capture, bounded ordered reconciliation, SQLite lifecycle/schema, atomic idempotent writing, coverage/status diagnostics and disposable packet-driven restart tests. Lookup and recovery are not implemented, and there is no release. Inspect the checkout and current test evidence before relying on this status; update it as implementation changes.
 
 - For documentation tasks, keep changes to documentation; do not bootstrap the plugin or install dependencies.
 - When the user requests implementation, work on the requested scope using the roadmap's dependencies and acceptance criteria. The planning status is not a permanent prohibition on implementation.
@@ -22,7 +22,7 @@ Start with [README.md](README.md), inspect Git status, and read the documents re
 | [PRODUCT_SPEC.md](docs/PRODUCT_SPEC.md) | Requirements, feature boundaries, commands, permissions and proposed defaults |
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Capture, threading, persistence, recovery invariants and open decisions |
 | [ROADMAP.md](docs/ROADMAP.md) | Milestone dependencies, the first development task and completion evidence |
-| [DEVELOPMENT.md](docs/DEVELOPMENT.md) | Environment, proposed build tasks, package boundaries and engineering conventions |
+| [DEVELOPMENT.md](docs/DEVELOPMENT.md) | Environment, build tasks, package boundaries and engineering conventions |
 | [TESTING.md](docs/TESTING.md) | Test layers, failure scenarios, independent correctness checks and release gates |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution scope, review expectations and licensing |
 
@@ -58,7 +58,7 @@ For documentation changes:
 - Verify local Markdown links/anchors, examples and status claims. Keep UTF-8 text, final newlines and consistent formatting.
 - Report documentation checks as such; do not substitute them for code tests.
 
-For code changes, run `.\gradlew.bat clean build` on Windows or `bash ./gradlew clean build` on Linux/macOS with JDK 25. This runs JUnit/packaging checks and compiles the separate fixture/harness. Database integration tests do not exist yet. `paperIntegrationTest` starts disposable Paper servers only with explicit EULA acceptance via `-PacceptMinecraftEula=true`; preserve that opt-in. Synthetic dispatch fixtures are not real-player capture qualification. Run relevant checks, add meaningful regression tests for fixes, and report unavailable checks. Use independent expected states for future rollback tests.
+For code changes, run `.\gradlew.bat clean build` on Windows or `bash ./gradlew clean build` on Linux/macOS with JDK 25. This runs JUnit/packaging checks and compiles the separate fixture/harness. `integrationTest` runs file-backed SQLite, packaged native-loading and subprocess crash tests as part of `build`. `paperIntegrationTest` and `paperPacketTest` start disposable Paper servers only with explicit EULA acceptance via `-PacceptMinecraftEula=true`; preserve that opt-in. Synthetic dispatch fixtures are not real-player capture qualification; `paperPacketTest` uses actual loopback player packets and checks durable history after restart. See `docs/CAPTURE_QUALIFICATION.md` and `docs/STORAGE.md`. Run relevant checks, add meaningful regression tests for fixes, and report unavailable checks. Use independent expected states for future rollback tests.
 
 Use disposable worlds/databases for runtime and failure tests. Never test destructive recovery against production data or include secrets, private player data, downloaded servers, generated binaries or local databases in changes.
 

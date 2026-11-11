@@ -1,6 +1,6 @@
 # Product specification
 
-Status: target specification, 11 November 2026. The first build implements plugin bootstrap, strict configuration and a basic `/chronicle status` command. Logging, storage, investigation and recovery requirements below remain unimplemented; the status command does not yet provide OPS-1's future metrics. Interfaces and defaults remain proposals unless the [development guide](DEVELOPMENT.md) identifies them as implemented. Architectural choices and unresolved questions live in [ARCHITECTURE.md](ARCHITECTURE.md).
+Status: target specification, 11 November 2026. M1 implements a qualified stone/air capture path, SQLite storage and durability/coverage status. Investigation, recovery, expanded capture and other requirements remain planned. Implemented scope and limitations are in [CAPTURE_QUALIFICATION.md](CAPTURE_QUALIFICATION.md) and [STORAGE.md](STORAGE.md); the broader interfaces/defaults below remain proposals unless the [development guide](DEVELOPMENT.md) identifies them as implemented.
 
 ## Users and outcomes
 
@@ -49,7 +49,7 @@ Block recovery changes world blocks only. It must not generate drops or experien
 
 ## Proposed administrator workflow
 
-Only `/chronicle status` exists in the first build, reporting version/runtime and missing logging/recovery capability. The remaining commands do not exist yet. The grammar should be validated with administrators before M2/M3 stabilise it.
+Only `/chronicle status` exists, reporting readiness, queue/reconciliation pressure, committed positions, coverage and runtime details. The remaining commands do not exist yet. The grammar should be validated with administrators before M2/M3 stabilise it.
 
 ```text
 /chronicle inspect

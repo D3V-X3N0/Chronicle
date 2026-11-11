@@ -1,110 +1,97 @@
 # Development guide
 
-Status: first build implemented, 11 November 2026. The project builds a bootstrap plugin, validates configuration and provides `/chronicle status`. Persistent event capture, SQLite, queries and rollback are not implemented. [ROADMAP.md](ROADMAP.md) separates the bootstrap from the remaining foundation work.
+Status: M1 capture/storage is implemented, 11 November 2026. The exact qualified subset and operational limits are in [CAPTURE_QUALIFICATION.md](CAPTURE_QUALIFICATION.md) and [STORAGE.md](STORAGE.md). Lookup and recovery are not implemented. There is no public release.
 
 ## Environment and pinned inputs
 
-| Input | Current pin / policy |
+| Input | Pin |
 | --- | --- |
-| Java | JDK 25 toolchain and Java 25 bytecode; no preview features |
-| Paper API | `io.papermc.paper:paper-api:26.3.build.248-stable`, compile-only in the distributable |
-| Paper test server | Minecraft 26.3, build 248; URL and SHA-256 in `gradle/paper-test.properties` |
-| Gradle | 9.9.1, official Wrapper scripts/JAR and verified distribution checksum |
+| Java | JDK 25 toolchain and bytecode; no preview features |
+| Paper API | `io.papermc.paper:paper-api:26.3.build.248-stable` (compile-only) |
+| Paper test server | Minecraft 26.3, build 248; URL/SHA-256 in `gradle/paper-test.properties` |
+| Gradle | 9.9.1, checksum-verified Wrapper/distribution |
 | JUnit | Jupiter via BOM 6.1.3 |
-| SQLite JDBC | Not yet added; remains a later M1 task |
+| SQLite JDBC | Xerial 3.54.1.0, engine 3.54.1, bundled with native resources/notices |
 
-Set `JAVA_HOME` to an installed JDK 25. The build does not automatically install a JDK. The Wrapper retrieves Gradle; no global Gradle is required. An IDE should import this as a Gradle project using JDK 25. Initial dependency resolution needs internet; cached builds can use `--offline`.
+Set `JAVA_HOME` to JDK 25. The build never installs a JDK. The Wrapper downloads Gradle; no global Gradle or extra client runtime is required. First dependency resolution needs internet. Cached builds can use `--offline`. Capture refuses other Paper builds/data versions rather than advertising unqualified compatibility.
 
-Pins were checked against [Paper's Maven metadata](https://repo.papermc.io/repository/maven-public/io/papermc/paper/paper-api/maven-metadata.xml), [Paper's server build metadata](https://fill.papermc.io/v3/projects/paper/versions/26.3/builds/248), [Gradle's version service](https://services.gradle.org/versions/current), and [JUnit's Maven metadata](https://repo.maven.apache.org/maven2/org/junit/junit-bom/maven-metadata.xml). Paper's [setup guide](https://docs.papermc.io/paper/dev/project-setup/) and Gradle's [compatibility matrix](https://docs.gradle.org/current/userguide/compatibility.html) explain the platform/toolchain requirements. Recheck authoritative sources when upgrading.
+Authoritative inputs: [Paper Maven metadata](https://repo.papermc.io/repository/maven-public/io/papermc/paper/paper-api/maven-metadata.xml), [server metadata](https://fill.papermc.io/v3/projects/paper/versions/26.3/builds/248), [Gradle compatibility](https://docs.gradle.org/current/userguide/compatibility.html), [JUnit metadata](https://repo.maven.apache.org/maven2/org/junit/junit-bom/maven-metadata.xml) and [Xerial metadata](https://repo.maven.apache.org/maven2/org/xerial/sqlite-jdbc/maven-metadata.xml). Recheck primary sources before upgrading.
 
 ## Build and checks
 
-Use `.\gradlew.bat` in Windows PowerShell or `bash ./gradlew` on Linux/macOS before the task names below. `bash` also works when the checkout does not preserve executable permissions.
+Use `.\gradlew.bat` on Windows or `bash ./gradlew` on Linux/macOS before these task names:
 
 | Task | Implemented behaviour |
 | --- | --- |
-| `clean build` | Compile with lint warnings treated as errors, run JUnit and packaged-JAR checks, compile the harness, produce both JARs |
-| `test` | Configuration, command/permission, artifact and observation-buffer tests; no Minecraft process |
-| `paperTestPluginJar` | Build the separate `ChronicleFixture` diagnostic plugin |
-| `paperIntegrationTest` | Explicit opt-in real Paper startup/lifecycle and synthetic-dispatch tests; EULA acceptance required |
+| `clean build` | Compile with lint errors, run unit and SQLite/native/crash tests, check the artifact, compile/package fixtures |
+| `test` | Pure configuration, permissions, reconciliation, observation-buffer, artifact and harness regression tests |
+| `integrationTest` | Actual file-backed SQLite, schema/lifecycle, transaction/idempotency, writer bounds/failures, subprocess kills, isolated packaged-native loading |
+| `paperTestPluginJar` | Separate disposable-server diagnostic/protection fixture |
+| `paperIntegrationTest` | Opt-in real Paper lifecycle, synthetic dispatch and invalid-config preservation |
+| `paperPacketTest` | Opt-in real TCP player actions, independent world/identity/order checks, exact durable rows after server restart |
 
-There is no `integrationTest` database task, `runServer` task or `benchmark` task yet. Add them when the relevant implementation exists rather than presenting empty tasks as checks.
+There are no lookup/recovery tests, benchmark task or public release tasks. Both ordinary test tasks run without Minecraft. Reports are at `build/reports/tests/test/index.html` and `build/reports/tests/integrationTest/index.html`, with XML under the corresponding `build/test-results/` directories.
 
 Artifacts:
 
-- `build/libs/chronicle-0.1.0-SNAPSHOT.jar`: the main bootstrap plugin, containing Chronicle classes, descriptor, defaults and MIT license. Paper/Adventure are provided by the server; no third-party runtime library is bundled.
-- `build/libs/chronicle-0.1.0-SNAPSHOT-paper-test-plugin.jar`: the separate disposable-server fixture. It is not a Chronicle release artifact.
-- `build/reports/tests/test/index.html`: local JUnit report. XML reports are under `build/test-results/test/`.
+- `build/libs/chronicle-0.1.0-SNAPSHOT.jar`: plugin, config, schema, MIT license and SQLite JDBC/native resources/notices. Only this JAR belongs in the evaluated server's plugins directory.
+- `build/libs/chronicle-0.1.0-SNAPSHOT-paper-test-plugin.jar`: test-only fixture; never install it on production.
 
-Gradle archives have stable entry ordering and timestamps disabled. The build checks that the actual plugin JAR has Java 25 bytecode, an expanded version, the correct descriptor and license, and no server or fixture classes.
+The driver is loaded separately from Paper's older bundled JDBC. Packaging tests exercise an isolated classloader containing only the distributable and JDK classes. Both OS CI jobs load the actual native library. Archives have stable ordering/timestamps. The artifact test checks Java 25 bytecode, descriptor/version, permission defaults, license and exclusion of server/fixture classes.
 
-`gradle.lockfile` locks resolved dependency versions; `gradle/verification-metadata.xml` checks artifacts and metadata by SHA-256. The initial checksums record downloads from the declared official repositories, not independently signed provenance. Review upstream changes before intentionally regenerating them with `clean build --write-locks --write-verification-metadata sha256`. Do not regenerate checksums merely to suppress an unexplained mismatch.
+Dependency versions/checksums are in `gradle.lockfile` and `gradle/verification-metadata.xml`. Review upstream changes before intentionally updating with `build --write-locks --write-verification-metadata sha256`. Never regenerate checksums to suppress an unexplained mismatch. Wrapper JAR SHA-256: `621008afc4f5d59357fcf06ffa644dd5aade5e091bdc363742710445f73cdaf8`; its upstream notices remain intact.
 
-The Wrapper JAR's verified SHA-256 is `621008afc4f5d59357fcf06ffa644dd5aade5e091bdc363742710445f73cdaf8`. Its embedded `META-INF/LICENSE` and the scripts' upstream notices are retained. Distribution verification is configured in `gradle/wrapper/gradle-wrapper.properties`.
+JDK 25 can print a native-access warning when loading SQLite. `--enable-native-access=ALL-UNNAMED` is the documented JVM opt-in for native access; the current warning does not mean native loading failed. Chronicle still checks the effective engine/pragmas and refuses an unsuitable engine.
 
 ## Disposable Paper tests
 
-The harness is [PaperSmokeTest.java](../src/paperIntegration/java/io/github/d3vx3n0/chronicle/harness/PaperSmokeTest.java). Review and accept the [Minecraft EULA](https://www.minecraft.net/eula) before opting in. The harness must not silently accept terms or upload logs/worlds.
-
-After acceptance, run:
+Review and accept the [Minecraft EULA](https://www.minecraft.net/eula) before opting in:
 
 ```powershell
-# Windows PowerShell
-.\gradlew.bat paperIntegrationTest -PacceptMinecraftEula=true
+.\gradlew.bat paperIntegrationTest paperPacketTest -PacceptMinecraftEula=true
 ```
 
 ```sh
-# Linux/macOS
-bash ./gradlew paperIntegrationTest -PacceptMinecraftEula=true
+bash ./gradlew paperIntegrationTest paperPacketTest -PacceptMinecraftEula=true
 ```
 
-Without the property, the task fails before any server download or server-directory creation. With it, the harness verifies the pinned Paper JAR, creates fresh directories under `build/paper-tests/`, binds to `127.0.0.1` on an ephemeral port, disables RCON/query, and starts Java with at most 1 GiB heap. Paper may download its own runtime inputs on first startup. It never uses an existing world.
+Without acceptance, each harness fails before download or server-directory creation. The server download is pinned/checksummed. Runs create fresh worlds under `build/paper-tests/`, bind only to loopback, disable query/RCON and use at most 1 GiB heap. The packet harness uses an explicit offline test identity and an ephemeral port; it is not an authentication test. The smoke harness uses synthetic player events and does not qualify real-player behaviour.
 
-The first run loads both packaged plugins, checks status/permission behaviour, exercises controlled event dispatch and block sampling, then stops. The second starts the main plugin with an unsupported configuration version and verifies refusal, file preservation and server shutdown. Each run has a four-minute deadline and child-process cleanup. It retains `console.log` and the disposable world for diagnosis; `clean` removes build output, including this evidence.
+The packet harness sends actual protocol-777 actions through the server, tests a controlled protection listener, checks final world states and compares six exact committed records after shutdown and restart. See [the qualification report](CAPTURE_QUALIFICATION.md) for scenarios and limits. No downloaded server, world, database or private player data is checked in. Logs remain beneath the disposable run directories. `clean` removes those generated logs/worlds, so preserve needed evidence first.
 
-These fixtures use **synthetic player events dispatched through a real Paper runtime** and controlled world mutations. They validate listener routing, cancellation flags and sample ordering. They do not prove vanilla packet-driven event timing, real player attribution, protection-plugin interoperability or production capture completeness.
-
-For manual qualification, use a separately created disposable Paper 26.3/build 248 server and install both JARs. Do not set `chronicle.fixture.autorun`; the fixture otherwise starts its synthetic tests and shuts down the server. Grant the tester `chronicle.fixture` explicitly. Perform ordinary stone placement/breaking in survival and creative, repeat same-location changes, and inspect the latest ten attempts with `/chroniclefixture`. Repeat with a protection plugin that cancels actions and a fixture that denies placement. Record actual before/after world states and exact settings. The buffer holds at most 256 attempts, reports rejected attempts, skips unsupported multi-place events and never loads chunks to sample them. Restart to clear it.
-
-The observation labels deliberately include cancelled attempts and `LATER_SAMPLE_ONLY`: a later sample cannot establish every intermediate event state. Do not promote these records into production history without completing the capture-contract investigation and independent real-player tests in [TESTING.md](TESTING.md).
+Runtime checks assert readiness/results with deadlines, not success from elapsed sleeps. Failed/expired runs terminate their child server. Tests use loopback-only disposable data, never production servers. Adding a new type/plugin interaction requires its own qualification; synthetic dispatch is insufficient.
 
 ## Repository organisation
 
 ```text
-build.gradle.kts / settings.gradle.kts / gradlew / gradlew.bat
-gradle/wrapper/                      # official Wrapper and distribution pin
-gradle/paper-test.properties         # server URL and checksum
-gradle/verification-metadata.xml     # dependency checksums
-gradle.lockfile
 src/main/java/io/github/d3vx3n0/chronicle/
-  bootstrap/                        # plugin lifecycle
-  command/                          # status and completion
-  config/                           # Paper-free strict settings
-src/main/resources/                 # plugin.yml and config.yml
-src/test/java/                      # JUnit tests
-src/paperTestPlugin/                 # separate event-observation fixture
-src/paperIntegration/java/           # standalone server process harness
-.github/workflows/build.yml          # Linux/Windows build; optional Paper run
-docs/                               # design, scope and evidence
+  bootstrap/       # lifecycle and explicit dependency wiring
+  config/          # strict Paper-free settings
+  capture/         # owning-thread Paper adapter and pure ordered reconciliation
+  model/           # immutable copied evidence and groups
+  storage/         # bounded writer, status and fixed-cardinality incidents
+  storage/sqlite/  # connection ownership, schema, native-driver isolation
+  command/         # permission-gated status; no lookup
+src/main/resources/db/  # checksummed numbered SQL migration
+src/test/java/          # unit, on-disk DB, native and subprocess checks
+src/paperTestPlugin/    # separate synthetic/packet fixture plugin
+src/paperIntegration/   # disposable-process harness and minimal real client
 ```
 
-Future storage, model, capture, query and rollback packages follow [architecture responsibilities](ARCHITECTURE.md#responsibilities-and-data-flow). Keep one project until concrete code/test constraints justify a split. Do not add unused JDBC, pooling or ORM dependencies to the bootstrap. When SQLite arrives, preserve native driver resources/notices, verify engine version and package/load it on Windows and Linux.
+Keep one Gradle project and explicit dependencies. No ORM, connection pool, remote backend, custom concurrency primitive or recovery subsystem is needed for M1.
 
 ## Engineering conventions
 
-- Keep domain logic immutable and Paper-free. Use descriptive names, explicit constructor dependencies and small interfaces at tested boundaries.
-- Document thread ownership. No live Paper objects on storage workers, and no blocking I/O/future waits in capture or world-apply callbacks.
-- Use stable UUIDs, versioned complete snapshots, ordered capture identities and UTC timestamps. Keep partial/unknown evidence explicit.
-- Bind SQL values and bound allocations, queues, plans and query results when these systems are introduced. Treat overload and partial failure as explicit outcomes.
-- Append released migrations; never edit already-applied versions. Test upgrade/recovery before expanding persisted state.
-- Use four-space Java indentation, UTF-8 and consistent line endings from `.gitattributes`. Compilation currently checks all javac lint warnings; no separate formatter is configured yet.
-- Test invariants with independent expectations and preserve bug reproducers. Update requirements and status claims alongside behavioural changes.
-- Keep local worlds, databases, generated artifacts and credentials out of source control. Use disposable data for every destructive test.
+- Keep domain records immutable and Paper-free. Only the owning server thread reads world/player/block APIs.
+- Never perform database/file/network I/O or wait on a future in capture. One worker owns SQLite; the shutdown wait is bounded and requires no Paper callback.
+- Preserve distinct sequence/group identities. Unknown state produces coverage uncertainty, never guessed air/empty data.
+- Bound records, payloads, reconciliation and batches. Failed admission cannot evict accepted history. Enqueue is not commit.
+- Append migrations after schema release; retain exact idempotency content and test failures/reopen before widening persisted state.
+- Use four-space Java indentation, UTF-8 and final newlines. Follow `.gitattributes`; do not add generated artifacts/private data.
+- Add independent regression expectations for behaviour changes; label process-crash evidence separately from power-loss claims.
 
 ## CI and review
 
-The build workflow pins action revisions, runs JDK 25 builds on Linux and Windows, verifies the Wrapper, and uses read-only repository permissions. Ordinary PR/push builds never start Minecraft. A manually dispatched workflow can run Paper tests only when its EULA acceptance input is explicitly selected. The first remote Linux/Windows build passed; see [recorded evidence](TESTING.md#current-build-evidence) for the exact commit and run. Check GitHub's result for each later revision before claiming it passed.
+The pinned-action workflow runs JDK 25 `clean build` on Linux and Windows with read-only repository permissions. Ordinary push/PR builds do not start Minecraft. Manual workflow dispatch starts both Paper harnesses only with explicit EULA acceptance. Logs and test reports are retained for seven days; worlds/databases are not uploaded.
 
-Workflow artifacts retain JARs, unit-test reports and runtime console logs for seven days, including failed runs. World data is not uploaded. Local Windows unit and Paper results are recorded in [TESTING.md](TESTING.md#current-build-evidence).
-
-Run relevant checks, inspect the packaged artifact and review [CONTRIBUTING.md](../CONTRIBUTING.md) before a PR. Report exactly which checks ran and which were unavailable. Future logging/recovery claims require the relevant real-server and fault-injection evidence; successful bootstrap tests do not complete Milestone 1.
+Record actual commit/run results in [TESTING.md](TESTING.md#current-m1-evidence). Future M2/M3 work requires its own acceptance gates. See [CONTRIBUTING.md](../CONTRIBUTING.md) for review and licensing expectations.

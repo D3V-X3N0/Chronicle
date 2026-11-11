@@ -2,7 +2,7 @@ name: Chronicle
 version: '${version}'
 main: io.github.d3vx3n0.chronicle.bootstrap.ChroniclePlugin
 api-version: '26.3'
-description: Development foundation for activity logging and recovery. History capture is not implemented.
+description: Development build with qualified stone/air logging and SQLite history. No lookup or recovery.
 author: DEV_X3N0
 website: https://github.com/D3V-X3N0/Chronicle
 commands:

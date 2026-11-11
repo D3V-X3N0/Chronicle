@@ -36,7 +36,7 @@ public final class PaperSmokeTest {
         runServer(root, serverJar, Path.of(args[2]), Path.of(args[3]), true);
     }
 
-    private static void downloadVerified(Properties pin, Path destination) throws Exception {
+    static void downloadVerified(Properties pin, Path destination) throws Exception {
         String expected = pin.getProperty("server-sha256");
         if (Files.exists(destination)) {
             verifyChecksum(destination, expected);
@@ -127,12 +127,12 @@ public final class PaperSmokeTest {
                 throw new IllegalStateException("Paper exited with " + process.exitValue() + ". Inspect " + output);
             }
             if (invalidConfig) {
-                if (!log.contains("config-version must be the integer 1") || log.contains("Chronicle foundation enabled")
+                if (!log.contains("config-version must be the integer 1") || log.contains("Chronicle starting SQLite")
                         || !Files.readString(plugins.resolve("Chronicle/config.yml")).contains("999")) {
                     throw new IllegalStateException("Invalid-config refusal/preservation failed. Inspect " + output);
                 }
             } else if (!log.contains("CHRONICLE_FIXTURE_PASS") || log.contains("CHRONICLE_FIXTURE_FAIL")
-                    || !log.contains("Chronicle foundation disabled")) {
+                    || !log.contains("Chronicle stopped: clean=true")) {
                 throw new IllegalStateException("Paper fixture/lifecycle assertions failed. Inspect " + output);
             }
             System.out.println("PASS " + (invalidConfig ? "invalid configuration refusal" : "packaged plugin + synthetic event fixture") + ": " + output);

@@ -126,6 +126,22 @@ tasks.register<JavaExec>("paperIntegrationTest") {
 }
 
 // Compile all fixture/harness sources in normal CI without downloading or starting Minecraft.
+tasks.register<JavaExec>("paperPacketTest") {
+    group = "verification"
+    description = "Qualify actual loopback player packets on pinned Paper; requires explicit EULA acceptance."
+    dependsOn(tasks.jar, paperTestPluginJar, paperIntegration.classesTaskName)
+    classpath = paperIntegration.runtimeClasspath
+    mainClass.set("io.github.d3vx3n0.chronicle.harness.PaperPacketTest")
+    javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(25)) })
+    args(
+        layout.projectDirectory.file("gradle/paper-test.properties").asFile.absolutePath,
+        layout.buildDirectory.dir("paper-tests").get().asFile.absolutePath,
+        tasks.jar.flatMap { it.archiveFile }.get().asFile.absolutePath,
+        paperTestPluginJar.flatMap { it.archiveFile }.get().asFile.absolutePath,
+        providers.gradleProperty("acceptMinecraftEula").orElse("false").get()
+    )
+}
+
 tasks.check {
     dependsOn(paperTestPluginJar, paperIntegration.classesTaskName, integrationTest)
 }

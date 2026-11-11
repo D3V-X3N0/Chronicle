@@ -6,13 +6,13 @@ The goal is a maintainable, performance-conscious alternative to established too
 
 ## Current status
 
-**The first development build is available from source. It loads a plugin and reports its status, but does not capture, persist, inspect or recover world history. Do not rely on Chronicle to protect a server. There is no public release.**
+**The development build records qualified player stone/air transitions in SQLite and reports durability and coverage status. Inspection, lookup and recovery are not implemented. It is not comprehensive server protection, and there is no public release.**
 
-Implemented: a pinned Gradle build, validated configuration, `/chronicle status` with explicit permission checks, unit/packaging tests, CI configuration, and an opt-in disposable Paper smoke-test harness. A separate test-plugin JAR observes event attempts; it is not production logging. The [roadmap](docs/ROADMAP.md) tracks remaining work. The existing [MIT license](LICENSE) is preserved.
+Implemented: a pinned Gradle build, strict configuration, bounded ordered capture, transactional SQLite history, explicit coverage incidents and `/chronicle status` with permission checks. Unit, file-backed database, subprocess crash and packaged-native tests run in the build. Opt-in disposable Paper tests include actual network players and exact history checks after restart. See the [capture qualification](docs/CAPTURE_QUALIFICATION.md) and [storage operations](docs/STORAGE.md) for the narrow supported scope. The [roadmap](docs/ROADMAP.md) tracks remaining work. The existing [MIT license](LICENSE) is preserved.
 
 ## Direction
 
-The logging and recovery features in this section remain planned.
+The initial stone/air capture and SQLite path exists. Investigation, expanded event families and recovery below remain planned.
 
 Chronicle prioritises correctness and data integrity, rollback safety, performance, usability, and maintainability, in that order.
 
@@ -27,7 +27,7 @@ The initial release scope is deliberately limited to a tested block logging and 
 
 ## Intended platform and prerequisites
 
-The build pins **Paper API `26.3.build.248-stable`, Minecraft 26.3, JDK 25 and Gradle 9.9.1**. The smoke harness pins matching Paper server build 248 and its SHA-256. Versions were verified against Paper's [artifact repository](https://repo.papermc.io/repository/maven-public/io/papermc/paper/paper-api/maven-metadata.xml) and [downloads service](https://fill.papermc.io/v3/projects/paper/versions/26.3/builds/248) on 11 November 2026. Compilation does not qualify logging or recovery support.
+The build pins **Paper API `26.3.build.248-stable`, Minecraft 26.3, JDK 25 and Gradle 9.9.1**. The smoke harness pins matching Paper server build 248 and its SHA-256. The plugin refuses unqualified runtime builds. Versions were verified against Paper's [artifact repository](https://repo.papermc.io/repository/maven-public/io/papermc/paper/paper-api/maven-metadata.xml) and [downloads service](https://fill.papermc.io/v3/projects/paper/versions/26.3/builds/248) on 11 November 2026. Packet-driven local tests qualify only the transitions described above; recovery is unavailable.
 
 Contributors need Git and JDK 25; set `JAVA_HOME` to that JDK. The checked-in Gradle Wrapper downloads its checksum-verified distribution. No globally installed Gradle is needed. Dependency downloads require internet on the first build. Folia, Spigot, older Minecraft versions and other forks are outside the initial support scope.
 
@@ -45,9 +45,9 @@ On Linux/macOS:
 bash ./gradlew clean build
 ```
 
-The development plugin is `build/libs/chronicle-0.1.0-SNAPSHOT.jar`. Install only that JAR in a disposable Paper server's `plugins/` directory, restart, and run `chronicle status` from console. Players need an explicit `chronicle.status` grant; it defaults to false even for operators. Configuration is created at `plugins/Chronicle/config.yml`; invalid configuration disables the plugin and preserves the file. Changes currently require restart.
+The development plugin is `build/libs/chronicle-0.1.0-SNAPSHOT.jar`. Install only that JAR in a disposable Paper 26.3 build 248 server's `plugins/` directory, restart, and run `chronicle status` from console. SQLite starts on its own worker; capture waits for `READY`. Players need an explicit `chronicle.status` grant; it defaults to false even for operators. Configuration is created at `plugins/Chronicle/config.yml`; invalid configuration disables the plugin and preserves the file. Changes require restart. History is stored at `plugins/Chronicle/history.db`; never delete a failed database or its WAL to silence an error.
 
-`build/libs/chronicle-0.1.0-SNAPSHOT-paper-test-plugin.jar` is a separate diagnostic fixture. Do not install it on a production server. `build` runs tests and compiles the harness without starting Minecraft. See [development setup](docs/DEVELOPMENT.md) for the opt-in Paper test command, EULA requirement, exact artifacts and fixture limitations.
+`build/libs/chronicle-0.1.0-SNAPSHOT-paper-test-plugin.jar` is a separate diagnostic fixture. Do not install it on a production server. `build` runs unit/database/crash/native tests and compiles the harness without starting Minecraft. See [development setup](docs/DEVELOPMENT.md) for the opt-in Paper test command, EULA requirement, exact artifacts and fixture limitations.
 
 ## Documentation
 
@@ -56,7 +56,7 @@ The development plugin is `build/libs/chronicle-0.1.0-SNAPSHOT.jar`. Install onl
 | [Product specification](docs/PRODUCT_SPEC.md) | Requirements, command proposals, release scope, and defaults |
 | [Architecture](docs/ARCHITECTURE.md) | Capture, storage, threading, rollback safety, and open decisions |
 | [Roadmap](docs/ROADMAP.md) | Ordered milestones and evidence required to complete them |
-| [Development](docs/DEVELOPMENT.md) | Environment, build proposal, organisation, and conventions |
+| [Development](docs/DEVELOPMENT.md) | Environment, build tasks, organisation, and conventions |
 | [Testing](docs/TESTING.md) | Correctness, failure recovery, performance, and release validation |
 | [Contributing](CONTRIBUTING.md) | How to propose and review useful changes |
 

@@ -1,15 +1,30 @@
 # Testing and validation
 
-Status: the bootstrap tests and harness are implemented, 11 November 2026. The broader persistence, capture and recovery suites below remain planned. Actual commands and runtime setup are in [DEVELOPMENT.md](DEVELOPMENT.md).
+Status: M1 unit, database, crash, packaged-native and packet-driven capture/restart tests are implemented, 11 November 2026. Broader investigation/recovery/performance suites below remain planned. Actual commands and runtime setup are in [DEVELOPMENT.md](DEVELOPMENT.md).
 
-## Current build evidence
+## Current M1 evidence
+
+- **Passed locally:** JDK 25.0.1 on Windows 11; `clean build paperIntegrationTest paperPacketTest -PacceptMinecraftEula=true`, using the pinned toolchain/server. All **52 tests passed**: 34 unit/packaging tests and 18 file-backed database/native/writer/process-crash tests, with zero skipped tests.
+- **Passed locally:** packaged plugin startup/clean shutdown, console permissions, off-thread capture refusal before world access and synthetic dispatch; a fresh server rejected invalid config version 999 without modifying the file.
+- **Passed locally:** all ten actual TCP player scenarios in [CAPTURE_QUALIFICATION.md](CAPTURE_QUALIFICATION.md), followed by independent SQL assertions for exactly six ordered changes. They retained exact world/player UUIDs, coordinates, capture keys, before/after states, codec/data versions and completion evidence after a second server start. Cancelled, denied, replacement and no-op attempts added no successful rows. Replacement persisted an unsupported incident. Both sessions drained cleanly.
+- **Passed locally:** real SQLite busy-lock exhaustion; injected I/O failure; in-flight record/byte bounds and whole-group rejection; accurate oldest-pending age as earlier batches commit; bounded forced-shutdown timeout; migration checksum/newer/partial/corrupt/unavailable database refusal; idempotent replay and payload mismatch; actual second-member abort with no partial group.
+- **Passed locally:** externally killed JVMs at buffered, first-row, pre-commit, post-commit and acknowledged boundaries. The two-member transaction was absent before commit and complete after commit; every killed session remained unclean. These are process-death tests, not simulated power failures.
+- **Passed locally:** isolated distributable native loading of SQLite 3.54.1 and retained Windows/Linux native resources/license notices. Real Paper testing exposed its parent-classloader SQLite 3.49.1 collision; the isolated-driver implementation now loads Chronicle's pinned engine and passes the runtime checks.
+- **Passed locally:** both Paper tasks reject absent EULA opt-in before creating any server directory.
+- **CI pending for this implementation:** Linux/Windows verification will be linked after the implementation push. Historical bootstrap runs below do not qualify the new driver.
+
+The final local validation artifact SHA-256 was `3017c58b997dcb5cb7dccbc54c393d4edccf6c10a848b3ee10c86dd4d3e5d331`. Generated evidence was in `smoke-14119944033112767302`, `invalid-config-7087243721445372376` and `packets-9433202355301045670` beneath `build/paper-tests/`. These are disposable test identities/worlds, not production data. The checksum identifies that validation build; later source changes require fresh evidence.
+
+Remaining limits: only the documented stone/air transitions and controlled protection fixture are qualified; no comprehensive third-party protection matrix, hardware power-loss/disk-full test, performance claim, inventory codec, lookup or recovery capability exists. Shutdown/native-stall acknowledgement limitations are explicit in [STORAGE.md](STORAGE.md).
+
+## Historical bootstrap evidence
 
 - **Passed locally:** JDK 25.0.1 on Windows 11, Gradle 9.9.1, `clean build` followed by `build paperIntegrationTest -PacceptMinecraftEula=true`, Paper API `26.3.build.248-stable`, and JUnit 6.1.3. All 23 tests passed: 12 configuration cases, five command/permission cases, four observation-buffer cases, one packaged-artifact check and one Windows/partial-log decoding regression.
 - **Passed locally:** invoking `paperIntegrationTest` without acceptance fails before server download/startup and creates no server directory.
 - **Passed locally after explicit EULA acceptance:** Paper 26.3 build 248 loaded the packaged plugin, executed the real console status command, passed synthetic event/permission assertions, and shut down cleanly. A second fresh server rejected configuration version 999, kept the file intact, and shut down successfully.
 - **Passed locally:** an offline forced rebuild of the main JAR produced the same SHA-256, `18f8ddb2fc4baece5e1375142da8c03c07a404ea4611c48de3c881523c4436ef`, as the artifact used in the passing runtime checks. This establishes repeatability in the measured environment, not cross-machine byte identity.
 - **Passed on GitHub Actions:** the Linux and Windows jobs in [bootstrap run 43067402499](https://github.com/D3V-X3N0/Chronicle/actions/runs/43067402499) built commit `1a543d4` with JDK 25, verified the Wrapper, ran `clean build`, and uploaded artifacts/test reports. This push run did not start Paper; runtime evidence above is local. Check the [Build workflow](https://github.com/D3V-X3N0/Chronicle/actions/workflows/build.yml) for subsequent revisions.
-- **Not yet verified:** real-player packet-driven capture, protection-plugin integration, database persistence, crash recovery or performance targets.
+- At the bootstrap revision, real-player capture, persistence and process-crash behaviour were unverified. Current M1 evidence above supersedes those gaps only for its stated subset; recovery/performance remain future work.
 
 The separately packaged `ChronicleFixture` observes attempts at `MONITOR`, including cancellation and build denial, and labels later samples as observations rather than event post-states. The passing synthetic runtime cases produced:
 
@@ -21,7 +36,7 @@ The separately packaged `ChronicleFixture` observes attempts at `MONITOR`, inclu
 | Cancelled break | stone / stone, cancelled | stone | No successful mutation |
 | Same-tick break then place | two ordered attempts: stone / stone, then air / stone | stone for both | The later sample misses the intermediate air state |
 
-The fixture proves these controlled dispatch/sample outcomes on the pinned runtime. It does not prove vanilla event timing or qualify production capture. Real-player tests remain a gate before implementing a reliable success-recording contract.
+The fixture proves these controlled dispatch/sample outcomes on the pinned runtime. It does not prove vanilla event timing or qualify production capture. The separate packet-driven evidence above supplies the narrow M1 qualification; this synthetic fixture alone cannot supply it.
 
 Unit reports are generated at `build/reports/tests/test/index.html`; runtime logs, when run, are kept under `build/paper-tests/`. Preserve needed evidence before invoking `clean`. The remaining sections define target suites, not claims that those systems exist.
 

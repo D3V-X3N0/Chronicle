@@ -7,7 +7,6 @@ description: Disposable-server event observation fixture. Not a production plugi
 commands:
   chroniclefixture:
     description: Display bounded event observations; these are not committed history.
-    permission: chronicle.fixture
 permissions:
   chronicle.fixture:
     default: false

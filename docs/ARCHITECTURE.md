@@ -1,6 +1,6 @@
 # Architecture
 
-Status: design baseline with the first bootstrap implemented, 11 November 2026. The build, lifecycle, strict configuration, status command and separate diagnostic fixture exist. Capture persistence, schemas, codecs and recovery algorithms below remain proposals subject to the milestone gates. See [development](DEVELOPMENT.md) and [test evidence](TESTING.md#current-build-evidence) for implemented behaviour; there is no public release.
+Status: M1 capture/storage implementation exists, 11 November 2026. Qualified stone/air adapters, bounded reconciliation/writing, schema 1, lifecycle and coverage diagnostics are implemented. The broader query, codec and recovery designs below remain proposals. [Capture qualification](CAPTURE_QUALIFICATION.md), [storage operations](STORAGE.md) and [test evidence](TESTING.md#current-m1-evidence) define actual behaviour; there is no release.
 
 ## Repository evidence and decisions
 
@@ -68,7 +68,7 @@ This follows Paper's [scheduler threading guidance](https://docs.papermc.io/pape
 1. Register observational handlers at `MONITOR` with cancelled events ignored where the event contract permits. Also honour event-specific denial such as placement's build flag. Never change an event in a monitoring handler. [`EventPriority`](https://jd.papermc.io/paper/26.3/org/bukkit/event/EventPriority.html) defines monitoring as observation; this is not a universal post-commit hook.
 2. On the owning thread, extract the event's pre-state and any proposed post-state before returning. A placement offers a replaced state; breaking fires before destruction, so the current block is not its final post-state. See [`BlockPlaceEvent`](https://jd.papermc.io/paper/26.3/org/bukkit/event/block/BlockPlaceEvent.html) and [`BlockBreakEvent`](https://jd.papermc.io/paper/26.3/org/bukkit/event/block/BlockBreakEvent.html).
 3. Assign a session-local capture sequence and group ID. Use adapter-specific completion evidence established on the pinned runtime. Reconciliation may use the next relevant observation and a bounded subsequent server-thread check. Do not assume a next-tick sample identifies every intermediate state: multiple mutations can happen in the same tick.
-4. Resolve pending observations in capture order. Finalised records distinguish complete transitions, partial/ambiguous evidence, and no change. If the post-state or causal chain cannot be established, keep an inspection-only observation with a reason; do not fabricate air as a generic break result. Pending buffers count against admission limits and expire to explicit uncertainty.
+4. Resolve pending observations in capture order. Finalised records distinguish complete transitions, partial/ambiguous evidence, and no change. If the post-state or causal chain cannot be established, retain inspection-only evidence or an explicit coverage incident with a reason; M1 uses bounded global incident aggregates. Do not fabricate air as a generic break result. Pending buffers count against admission limits and expire to explicit uncertainty.
 5. Admit each complete group atomically to the queue. Deduplicate by capture identity and adapter ownership, not by matching location/time/material. A real `A -> B -> A` sequence must retain both changes. One placement adapter handles both ordinary and multi-place events to avoid superclass/subclass duplication.
 
 The first capture spike must prove these steps for a small allowlist of simple blocks before declaring reliable logging. Later plugins can violate monitoring conventions or mutate blocks without events; Chronicle cannot turn the public event API into a complete transaction log. Expose known ambiguity and configuration coverage instead of claiming universal detection.
@@ -104,6 +104,8 @@ Inventory callbacks describe activity during a transaction, not a durable commit
 Maintain a bounded ordered observation stream per inventory identity, reconcile actual slot deltas, and group both sides of a qualified transfer. Identify block inventories by world/position and physical half/slot mapping; use entity UUIDs for entity inventories. Treat shift-click, hotbar swap, double-click, drag, creative edits, concurrent viewers, hopper chains, pickups, furnaces and crafting outputs as distinct cases. Opening/closing a chest is not a transaction. A final net snapshot cannot attribute intermediate movements to one viewer; retain ambiguity if no reliable order can be proven. Do not recreate the entire vanilla transaction engine just to claim coverage. No inventory recovery ships until conservation, drop handling, and crash recovery have a separate proven design.
 
 ## Persistence
+
+The current implementation uses Xerial 3.54.1.0 / SQLite 3.54.1, a single connection-owning worker, no production readers, and transactional schema 1. It isolates the bundled driver because Paper supplies an older SQLite. See [STORAGE.md](STORAGE.md) for the implemented schema, failure policy and shutdown limits. Query barriers, query workers, backup tooling, pruning and operation journals below remain future work.
 
 ### Admission, commit, and overload
 
@@ -216,8 +218,8 @@ Track capture duration/allocation, queue count/bytes/oldest age, commit latency 
 
 | Open decision | Recommended direction | Evidence / decision gate |
 | --- | --- | --- |
-| SQLite driver and schema implementation | Choose a maintained JDBC artifact with the required fixed engine; keep native resources intact | Later M1 integration/native-loading tests; Paper/Gradle/JUnit pins already exist in the bootstrap |
-| Reliable before/after capture | Start with a small inert-block allowlist and explicit uncertain observations | M1 spike and M2 real-server cancellation, ordering and same-tick tests |
+| SQLite driver and schema implementation | Implemented: Xerial 3.54.1.0, isolated native loading, checksummed schema 1 | File-backed/native/crash checks in `integrationTest`; Paper runtime checks in both opted-in harnesses |
+| Reliable before/after capture | Qualified stone/air only; explicit uncertainty, no recovery eligibility | [Packet-driven M1 evidence](CAPTURE_QUALIFICATION.md); broader plugin/type matrix remains future work |
 | Block/item codecs and supported state list | Public API, explicit versioned codecs, inspect-only fallback | Round-trip fixtures per type/version before recovery support |
 | M4 transaction fidelity | Stage simple container/hopper cases; retain ambiguity | Pinned API/source inspection and real inventory interleaving fixtures |
 | Numeric limits and retention policy | Use PRODUCT_SPEC development defaults; prune only by explicit policy | M5 workload measurements and operator review |

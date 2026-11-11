@@ -1,4 +1,14 @@
-# First-build settings only. This build does not record or recover world history.
+# M1 development bounds, not throughput promises. Changes require restart.
 config-version: 1
 diagnostics:
   show-runtime-details: true
+storage:
+  # Includes queued and in-flight history; accepted records are never evicted.
+  max-records: 10000
+  max-bytes: 33554432
+  batch-records: 500
+  batch-bytes: 1048576
+  flush-millis: 100
+  busy-millis: 1000
+  shutdown-millis: 10000
+  reconciliation-records: 1024

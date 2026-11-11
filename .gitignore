@@ -10,4 +10,7 @@ run/
 *.db
 *.db-wal
 *.db-shm
+*.db-journal
+*.db.lock
 *.log
+node_modules/

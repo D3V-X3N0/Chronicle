@@ -25,6 +25,8 @@ public final class HistoryWriter {
     private final Consumer<String> alerts;
     private final String runtime;
     private final ArrayDeque<CaptureGroup> queue = new ArrayDeque<>();
+    private final ArrayDeque<Long> admissionTimes = new ArrayDeque<>();
+    private final java.util.function.LongSupplier ageClock;
     private List<CaptureGroup> inFlight = List.of(); // Retained on failure until lifecycle teardown, still accounted.
     private final EnumMap<Coverage, Incident> incidents = new EnumMap<>(Coverage.class);
     private final Thread worker;
@@ -37,7 +39,12 @@ public final class HistoryWriter {
     private String engine = "unavailable", failure = "none";
 
     public HistoryWriter(StorageSettings settings, StoreFactory factory, String runtime, Consumer<String> alerts) {
+        this(settings, factory, runtime, alerts, System::nanoTime);
+    }
+    HistoryWriter(StorageSettings settings, StoreFactory factory, String runtime, Consumer<String> alerts,
+            java.util.function.LongSupplier ageClock) {
         this.settings = settings; this.factory = factory; this.runtime = runtime; this.alerts = alerts;
+        this.ageClock = ageClock;
         note(Coverage.STARTUP, 0);
         worker = Thread.ofPlatform().daemon().name("chronicle-sqlite-writer").start(this::run);
     }
@@ -52,7 +59,7 @@ public final class HistoryWriter {
         }
         lastAdmitted = group.sequence();
         queue.addLast(group); accepted += group.changes().size(); pendingRecords += group.changes().size(); pendingBytes += bytes;
-        if (oldestNanos == 0) oldestNanos = System.nanoTime();
+        admissionTimes.addLast(ageClock.getAsLong()); oldestNanos = admissionTimes.getFirst();
         notifyAll(); return true;
     }
 
@@ -63,7 +70,7 @@ public final class HistoryWriter {
     }
     public synchronized Status status() {
         return new Status(state, session, engine, accepted, committed, committedSequence, committedId, pendingRecords, pendingBytes,
-                oldestNanos == 0 ? 0 : Duration.ofNanos(System.nanoTime() - oldestNanos).toMillis(), rejected, previousUnclean,
+                admissionTimes.isEmpty() ? 0 : Duration.ofNanos(ageClock.getAsLong() - oldestNanos).toMillis(), rejected, previousUnclean,
                 previousCoverageIncidents, List.copyOf(incidents.values()), failure);
     }
 
@@ -135,11 +142,12 @@ public final class HistoryWriter {
                 synchronized (this) {
                     for (CaptureGroup group : batch) {
                         committed += group.changes().size(); pendingRecords -= group.changes().size(); pendingBytes -= group.accountedBytes();
+                        admissionTimes.removeFirst();
                         committedSequence = group.sequence();
                     }
                     committedId = position; persistedIncidentRevision = revision;
                     inFlight = List.of();
-                    if (pendingRecords == 0) oldestNanos = 0;
+                    oldestNanos = admissionTimes.isEmpty() ? 0 : admissionTimes.getFirst();
                 }
                 if (control.size() > announcedReasons) {
                     alerts.accept("Chronicle coverage limits: " + control.stream().map(value -> value.reason().name()).toList());

@@ -1,12 +1,12 @@
 # Contributing to Chronicle
 
-Chronicle has its first bootstrap build and automated tests. Persistent logging and recovery are not implemented. Useful contributions include qualifying real-player event semantics, improving the harness, identifying recovery edge cases and completing focused tasks from the [roadmap](docs/ROADMAP.md).
+Chronicle has qualified stone/air player logging, SQLite history and automated unit, database, crash and real-client harnesses. Investigation and recovery are not implemented. Useful contributions include reviewing capture limits, improving failure coverage and completing focused tasks from the [roadmap](docs/ROADMAP.md).
 
 ## Before starting
 
 Read the [product scope](docs/PRODUCT_SPEC.md), [architecture](docs/ARCHITECTURE.md), and [development guide](docs/DEVELOPMENT.md). Correctness and recovery safety come before performance and breadth. Open an issue before a large new feature, dependency, backend, compatibility expansion, or change to persisted state so the scope and trade-offs can be reviewed.
 
-Small documentation corrections can go straight to a PR. The [first development task](docs/ROADMAP.md#first-development-task) records bootstrap progress and remaining capture-contract work; avoid starting several unfinished subsystems at once.
+Small documentation corrections can go straight to a PR. The [first development task](docs/ROADMAP.md#first-development-task) records the foundation and its qualification evidence; avoid starting several unfinished subsystems at once.
 
 ## Issues
 
