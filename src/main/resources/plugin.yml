@@ -1,0 +1,16 @@
+name: Chronicle
+version: '${version}'
+main: io.github.d3vx3n0.chronicle.bootstrap.ChroniclePlugin
+api-version: '26.3'
+description: Development foundation for activity logging and recovery. History capture is not implemented.
+author: DEV_X3N0
+website: https://github.com/D3V-X3N0/Chronicle
+commands:
+  chronicle:
+    description: Show Chronicle's development status.
+    usage: /chronicle status
+    # The executor checks permissions so trusted console access can bypass the player default=false.
+permissions:
+  chronicle.status:
+    description: View Chronicle version and implementation status.
+    default: false

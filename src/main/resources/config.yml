@@ -1,0 +1,4 @@
+# First-build settings only. This build does not record or recover world history.
+config-version: 1
+diagnostics:
+  show-runtime-details: true

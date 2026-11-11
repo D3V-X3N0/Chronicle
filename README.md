@@ -1,16 +1,18 @@
 # Chronicle
 
-Chronicle is a planned activity logging and recovery plugin for Minecraft Paper servers. It aims to help server administrators investigate griefing, inspect block history, and recover builds through targeted rollbacks and restoration.
+Chronicle is an early-stage activity logging and recovery project for Minecraft Paper servers. It aims to help server administrators investigate griefing, inspect block history, and recover builds through targeted rollbacks and restoration.
 
 The goal is a maintainable, performance-conscious alternative to established tools such as CoreProtect. Chronicle has no benchmark results or demonstrated performance advantage yet.
 
 ## Current status
 
-**Planning and documentation only. There is no runnable plugin, build system, test suite, or release in this checkout. Do not rely on Chronicle to protect a server yet.**
+**The first development build is available from source. It loads a plugin and reports its status, but does not capture, persist, inspect or recover world history. Do not rely on Chronicle to protect a server. There is no public release.**
 
-The repository review on 11 November 2026 found one initial commit, `611d983`, containing a short README and an MIT license. This foundation adds design and contribution documentation; it does not implement the plugin. All features and commands below are planned. The existing [MIT license](LICENSE) is preserved.
+Implemented: a pinned Gradle build, validated configuration, `/chronicle status` with explicit permission checks, unit/packaging tests, CI configuration, and an opt-in disposable Paper smoke-test harness. A separate test-plugin JAR observes event attempts; it is not production logging. The [roadmap](docs/ROADMAP.md) tracks remaining work. The existing [MIT license](LICENSE) is preserved.
 
 ## Direction
+
+The logging and recovery features in this section remain planned.
 
 Chronicle prioritises correctness and data integrity, rollback safety, performance, usability, and maintainability, in that order.
 
@@ -25,22 +27,27 @@ The initial release scope is deliberately limited to a tested block logging and 
 
 ## Intended platform and prerequisites
 
-The proposed development baseline is **Paper for Minecraft 26.3 and JDK 25**. Paper's current [download page](https://papermc.io/downloads/paper) lists 26.3, and its [project setup guide](https://docs.papermc.io/paper/dev/project-setup/) uses the 26.3 API and a Java 25 toolchain. Sources were checked on 11 November 2026. An exact API artifact and matching server build must be pinned during the first milestone; this is a design target, not a compatibility claim.
+The build pins **Paper API `26.3.build.248-stable`, Minecraft 26.3, JDK 25 and Gradle 9.9.1**. The smoke harness pins matching Paper server build 248 and its SHA-256. Versions were verified against Paper's [artifact repository](https://repo.papermc.io/repository/maven-public/io/papermc/paper/paper-api/maven-metadata.xml) and [downloads service](https://fill.papermc.io/v3/projects/paper/versions/26.3/builds/248) on 11 November 2026. Compilation does not qualify logging or recovery support.
 
-Future contributors will need Git, JDK 25, a Java IDE or editor, and a disposable Paper test server. The planned build uses a checked-in Gradle Wrapper and Kotlin build scripts. Folia, Spigot, older Minecraft versions, and other forks are outside the initial support scope.
+Contributors need Git and JDK 25; set `JAVA_HOME` to that JDK. The checked-in Gradle Wrapper downloads its checksum-verified distribution. No globally installed Gradle is needed. Dependency downloads require internet on the first build. Folia, Spigot, older Minecraft versions and other forks are outside the initial support scope.
 
 ## Building
 
-There is currently nothing to compile. No Gradle Wrapper or build files exist yet.
+On Windows PowerShell:
 
-Once Milestone 1 supplies and validates the build, the intended commands are:
-
-```sh
-# Planned workflow; not runnable in the current checkout.
-./gradlew clean build
+```powershell
+.\gradlew.bat clean build
 ```
 
-On Windows, the equivalent will be `./gradlew.bat clean build`. The expected distributable location is `build/libs/`; the actual artifact name and installation procedure will be documented when packaging exists. See [development setup](docs/DEVELOPMENT.md) for the bootstrap task and planned checks.
+On Linux/macOS:
+
+```sh
+bash ./gradlew clean build
+```
+
+The development plugin is `build/libs/chronicle-0.1.0-SNAPSHOT.jar`. Install only that JAR in a disposable Paper server's `plugins/` directory, restart, and run `chronicle status` from console. Players need an explicit `chronicle.status` grant; it defaults to false even for operators. Configuration is created at `plugins/Chronicle/config.yml`; invalid configuration disables the plugin and preserves the file. Changes currently require restart.
+
+`build/libs/chronicle-0.1.0-SNAPSHOT-paper-test-plugin.jar` is a separate diagnostic fixture. Do not install it on a production server. `build` runs tests and compiles the harness without starting Minecraft. See [development setup](docs/DEVELOPMENT.md) for the opt-in Paper test command, EULA requirement, exact artifacts and fixture limitations.
 
 ## Documentation
 

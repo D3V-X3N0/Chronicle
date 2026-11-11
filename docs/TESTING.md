@@ -1,6 +1,28 @@
 # Testing and validation
 
-Status: strategy only, 11 November 2026. There are no tests, fixtures, CI workflows, measurements or passing results yet. M1 introduces the harness and runs tests as the first implementation appears. Planned commands and runtime setup are in [DEVELOPMENT.md](DEVELOPMENT.md).
+Status: the bootstrap tests and harness are implemented, 11 November 2026. The broader persistence, capture and recovery suites below remain planned. Actual commands and runtime setup are in [DEVELOPMENT.md](DEVELOPMENT.md).
+
+## Current build evidence
+
+- **Passed locally:** JDK 25.0.1 on Windows 11, Gradle 9.9.1, `clean build` followed by `build paperIntegrationTest -PacceptMinecraftEula=true`, Paper API `26.3.build.248-stable`, and JUnit 6.1.3. All 23 tests passed: 12 configuration cases, five command/permission cases, four observation-buffer cases, one packaged-artifact check and one Windows/partial-log decoding regression.
+- **Passed locally:** invoking `paperIntegrationTest` without acceptance fails before server download/startup and creates no server directory.
+- **Passed locally after explicit EULA acceptance:** Paper 26.3 build 248 loaded the packaged plugin, executed the real console status command, passed synthetic event/permission assertions, and shut down cleanly. A second fresh server rejected configuration version 999, kept the file intact, and shut down successfully.
+- **Passed locally:** an offline forced rebuild of the main JAR produced the same SHA-256, `18f8ddb2fc4baece5e1375142da8c03c07a404ea4611c48de3c881523c4436ef`, as the artifact used in the passing runtime checks. This establishes repeatability in the measured environment, not cross-machine byte identity.
+- **Not yet verified:** GitHub's configured Linux/Windows jobs, real-player packet-driven capture, protection-plugin integration, database persistence, crash recovery or performance targets.
+
+The separately packaged `ChronicleFixture` observes attempts at `MONITOR`, including cancellation and build denial, and labels later samples as observations rather than event post-states. The passing synthetic runtime cases produced:
+
+| Controlled case | Captured before / during callback | Later sample | Evidence limit |
+| --- | --- | --- | --- |
+| Place stone | air / stone | stone | Synthetic action, not a player packet |
+| Cancelled or build-denied placement | air / stone, with cancellation/denial flag | air | Attempt must not become a successful-change record |
+| Break stone | stone / stone | air | Callback state precedes the controlled mutation |
+| Cancelled break | stone / stone, cancelled | stone | No successful mutation |
+| Same-tick break then place | two ordered attempts: stone / stone, then air / stone | stone for both | The later sample misses the intermediate air state |
+
+The fixture proves these controlled dispatch/sample outcomes on the pinned runtime. It does not prove vanilla event timing or qualify production capture. Real-player tests remain a gate before implementing a reliable success-recording contract.
+
+Unit reports are generated at `build/reports/tests/test/index.html`; runtime logs, when run, are kept under `build/paper-tests/`. Preserve needed evidence before invoking `clean`. The remaining sections define target suites, not claims that those systems exist.
 
 Correctness gates precede throughput tuning. Every supported event/state family needs an independent expected result, and every recovery step needs a defined outcome when interrupted. A passing mock test cannot establish Paper event timing or persistent world-save behaviour.
 

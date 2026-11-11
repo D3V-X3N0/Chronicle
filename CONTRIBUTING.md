@@ -1,16 +1,16 @@
 # Contributing to Chronicle
 
-Chronicle is in its planning phase. There is no runnable plugin or test suite yet. Useful contributions now include reviewing event semantics, identifying recovery edge cases, improving documentation, and preparing focused implementation proposals from the [roadmap](docs/ROADMAP.md).
+Chronicle has its first bootstrap build and automated tests. Persistent logging and recovery are not implemented. Useful contributions include qualifying real-player event semantics, improving the harness, identifying recovery edge cases and completing focused tasks from the [roadmap](docs/ROADMAP.md).
 
 ## Before starting
 
 Read the [product scope](docs/PRODUCT_SPEC.md), [architecture](docs/ARCHITECTURE.md), and [development guide](docs/DEVELOPMENT.md). Correctness and recovery safety come before performance and breadth. Open an issue before a large new feature, dependency, backend, compatibility expansion, or change to persisted state so the scope and trade-offs can be reviewed.
 
-Small documentation corrections can go straight to a PR. The recommended first implementation task is the [reproducible Paper harness and capture contract](docs/ROADMAP.md#first-development-task); avoid starting several unfinished subsystems at once.
+Small documentation corrections can go straight to a PR. The [first development task](docs/ROADMAP.md#first-development-task) records bootstrap progress and remaining capture-contract work; avoid starting several unfinished subsystems at once.
 
 ## Issues
 
-Use the [bug report](.github/ISSUE_TEMPLATE/bug_report.md) or [feature request](.github/ISSUE_TEMPLATE/feature_request.md) template. Documentation/design defects are valid bugs today; mark runtime fields as not applicable until code exists.
+Use the [bug report](.github/ISSUE_TEMPLATE/bug_report.md) or [feature request](.github/ISSUE_TEMPLATE/feature_request.md) template. Documentation/design defects are valid bugs; mark runtime fields as not applicable when the report does not concern runtime behaviour.
 
 For future runtime bugs, give the Chronicle revision, exact Paper/Minecraft/Java versions, configuration changes, reproduction steps, expected and actual behaviour, and sanitized diagnostics. Recovery bugs should include operation state and the last known good world/history boundary. Do not post credentials, player IPs, private item text, or entire production databases/worlds in public issues. Preserve a backup before reproducing a destructive failure in a disposable environment.
 
@@ -20,7 +20,7 @@ For future runtime bugs, give the Chronicle revision, exact Paper/Minecraft/Java
 - Link the relevant issue or requirement. Do not mark roadmap work complete merely because a class, listener or document exists.
 - Follow the [engineering conventions](docs/DEVELOPMENT.md#engineering-conventions), preserve thread ownership and bounded work, and update affected documentation.
 - Add a meaningful regression test for a behavioural fix. Persisted schema/codec changes need upgrade and failure tests; rollback changes need independent state comparisons.
-- Run available checks and state exactly what ran and what could not run. Today, validate documentation links/status and `git diff --check`; there is no build to report as passing. Planned commands are listed in the development guide.
+- Run the applicable build/tests and state exactly what ran and what could not run. Validate documentation links/status and `git diff --check`, including new files. Actual commands and explicit opt-in requirements for the Paper harness are in the development guide; synthetic event fixtures do not qualify real-player capture.
 - Do not include local servers, world saves, database files, secrets, generated binaries, unrelated formatting or dependency churn.
 
 Review should verify cancellation, ordering, snapshot completeness, overload and interrupted-operation behaviour where relevant. New support claims require real Paper evidence; a mock or synthetic benchmark alone is insufficient. Follow-up fixes should remain understandable in the real history, without manufactured commits, users, benchmarks or release activity.

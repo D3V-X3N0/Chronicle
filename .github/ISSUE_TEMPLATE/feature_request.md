@@ -4,8 +4,8 @@ about: Propose a useful capability or a change to Chronicle's planned design.
 title: ""
 ---
 
-<!-- Check docs/PRODUCT_SPEC.md and docs/ROADMAP.md first. All capabilities are
-currently planned; this issue should not describe them as already implemented. -->
+<!-- Check docs/PRODUCT_SPEC.md and docs/ROADMAP.md first. The bootstrap exists;
+logging and recovery capabilities remain planned. Distinguish them from implemented behaviour. -->
 
 ## Administrator or contributor problem
 

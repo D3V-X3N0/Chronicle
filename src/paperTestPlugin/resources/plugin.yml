@@ -1,0 +1,13 @@
+name: ChronicleFixture
+version: '0.1.0'
+main: io.github.d3vx3n0.chronicle.fixture.ChronicleFixture
+api-version: '26.3'
+depend: [Chronicle]
+description: Disposable-server event observation fixture. Not a production plugin.
+commands:
+  chroniclefixture:
+    description: Display bounded event observations; these are not committed history.
+    permission: chronicle.fixture
+permissions:
+  chronicle.fixture:
+    default: false

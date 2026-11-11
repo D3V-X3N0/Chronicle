@@ -1,21 +1,34 @@
 # Development roadmap
 
-Status: all milestones are planned; none is complete. There are no delivery dates. Dependencies and evidence determine progress. The [product specification](PRODUCT_SPEC.md) defines what may eventually be advertised, and [architecture](ARCHITECTURE.md) records the proposed design and open decisions.
+Status: the first build is implemented and Milestone 1 is in progress; no milestone is complete. There are no delivery dates. Dependencies and evidence determine progress. The [product specification](PRODUCT_SPEC.md) defines what may eventually be advertised, and [architecture](ARCHITECTURE.md) records the proposed design and open decisions.
 
 The main path is **M1 -> M2 -> M3 -> M5 -> M6**. M4 builds on M2's capture contracts and uses M3's safety model for any recovery research. Expanded families can be promoted separately after their tests pass; M4 is not permission to delay core correctness until M5. Tests, diagnostics, and basic failure handling start in M1.
 
 ## First development task
 
-Open a focused implementation issue: **Bootstrap a reproducible Paper 26.3 / Java 25 development harness and establish the ordinary-block capture contract.** No production work is part of this documentation change.
+Scope: **Bootstrap a reproducible Paper 26.3 / Java 25 development harness and establish the ordinary-block capture contract.**
 
-The first implementation PR should:
+Implementation plan and current progress:
 
-1. Resolve and pin a stable Paper 26.3 API artifact and corresponding server build/checksum; verify the Java 25 and Gradle combination. If that line is no longer an appropriate target, update the decision with authoritative evidence before changing it.
-2. Add a single-project Gradle Kotlin DSL build, verified Wrapper, conventional `plugin.yml`, minimal lifecycle entry point, test source set, and a clean temporary-server workflow. Choose a valid package namespace tied to the existing GitHub owner.
-3. Add minimal CI that compiles and runs one meaningful lifecycle/configuration test, plus an isolated Paper fixture or test plugin for event observation. Record the exact build and how to repeat the fixture.
-4. Exercise ordinary stone placement and breaking, cancellation, denied placement, and repeated same-tick changes. Record when old/proposed/final states are available. Keep the investigation bounded to capture semantics; do not start rollback or a universal state codec.
+1. **Implemented:** Gradle 9.9.1 with verified Wrapper/distribution, Java 25 toolchain, Paper API `26.3.build.248-stable`, matching server checksum, dependency locks and SHA-256 verification.
+2. **Implemented:** a single-project Kotlin DSL build, `plugin.yml`, lifecycle entry point, strict configuration and a permission-gated status command under `io.github.d3vx3n0.chronicle`. Both the main JAR and a separate diagnostic-fixture JAR build successfully.
+3. **Implemented and locally verified:** 23 passing JUnit tests, packaged-artifact checks, an identical offline JAR rebuild, and successful Paper lifecycle/synthetic-fixture/invalid-configuration runs. Linux/Windows CI is configured; remote execution is not yet verified. Evidence is tracked in [TESTING.md](TESTING.md#current-build-evidence).
+4. **Synthetic fixture passed; real-player qualification pending:** controlled stone placement/breaking, cancelled/denied attempts and repeated same-tick changes. The real Paper fixture dispatches synthetic player events; a real-player capture-contract investigation remains necessary before production logging. No rollback or universal state codec has been started.
 
 Completion evidence: a clean checkout builds with only the documented JDK and Wrapper; the plugin loads/unloads in the disposable server; no production world is used; cancellation yields no successful-change record; the observation report identifies any unprovable intermediate state. This provides a reproducible foundation and removes the riskiest assumption before schema design hardens.
+
+The first build records diagnostic attempts only in the separate fixture, including cancelled attempts. It creates no successful-change history records. The next implementation step is to complete actual player/protection-plugin observation on the pinned runtime, document eligible transitions and uncertainty, then add the SQLite lifecycle/schema/write queue. M1 remains incomplete until the exit criteria below pass.
+
+### Tracked foundation work
+
+The [Milestone 1 tracker](https://github.com/D3V-X3N0/Chronicle/milestone/1) contains the concrete remaining work. These issues are open; the bootstrap commit does not close them.
+
+| Issue | Dependency |
+| --- | --- |
+| [#1: Qualify real-player block placement and break capture](https://github.com/D3V-X3N0/Chronicle/issues/1) | Existing diagnostic fixture; actual clients/protection-plugin evidence still needed |
+| [#2: Implement SQLite lifecycle and versioned foundation schema](https://github.com/D3V-X3N0/Chronicle/issues/2) | Final history-record semantics follow #1; driver/lifecycle preparation can proceed independently |
+| [#3: Implement bounded transactional history writer and failure handling](https://github.com/D3V-X3N0/Chronicle/issues/3) | #2 and the capture semantics from #1 |
+| [#4: Connect qualified block capture to durable history and status](https://github.com/D3V-X3N0/Chronicle/issues/4) | #1, #2 and #3 |
 
 ## Milestone 1 — Foundation and capture contract
 
@@ -129,7 +142,7 @@ Exit criteria:
 
 ## Milestone 6 — First public release
 
-**Depends on:** M1–M3 and M5 gates, plus passing gates or explicit deferrals for M4 families. All work remains uncompleted today.
+**Depends on:** M1–M3 and M5 gates, plus passing gates or explicit deferrals for M4 families. Public-release work has not started.
 
 Tasks:
 

@@ -1,6 +1,6 @@
 # Product specification
 
-Status: planning baseline, 11 November 2026. Nothing described here is implemented. Requirements define the intended behaviour; interfaces and defaults remain proposals until validated. Architectural choices and unresolved questions live in [ARCHITECTURE.md](ARCHITECTURE.md).
+Status: target specification, 11 November 2026. The first build implements plugin bootstrap, strict configuration and a basic `/chronicle status` command. Logging, storage, investigation and recovery requirements below remain unimplemented; the status command does not yet provide OPS-1's future metrics. Interfaces and defaults remain proposals unless the [development guide](DEVELOPMENT.md) identifies them as implemented. Architectural choices and unresolved questions live in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Users and outcomes
 
@@ -49,7 +49,7 @@ Block recovery changes world blocks only. It must not generate drops or experien
 
 ## Proposed administrator workflow
 
-These commands do not exist yet. The grammar should be validated with administrators before M2/M3 stabilise it.
+Only `/chronicle status` exists in the first build, reporting version/runtime and missing logging/recovery capability. The remaining commands do not exist yet. The grammar should be validated with administrators before M2/M3 stabilise it.
 
 ```text
 /chronicle inspect

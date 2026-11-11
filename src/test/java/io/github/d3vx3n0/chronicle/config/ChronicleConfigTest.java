@@ -1,0 +1,76 @@
+package io.github.d3vx3n0.chronicle.config;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.io.StringReader;
+import java.util.HashMap;
+import java.util.Map;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+class ChronicleConfigTest {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void preservesExplicitRuntimeVisibility(boolean visible) {
+        assertEquals(visible, ChronicleConfig.from(validConfig(visible)).showRuntimeDetails());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"1", "2", "true", ""})
+    void refusesCoercedOrUnsupportedSchema(String version) {
+        var values = validConfig(true);
+        values.put("config-version", version);
+        assertThrows(IllegalArgumentException.class, () -> ChronicleConfig.from(values));
+    }
+
+    @Test
+    void refusesFutureSchema() {
+        var values = validConfig(true);
+        values.put("config-version", 2);
+        assertThrows(IllegalArgumentException.class, () -> ChronicleConfig.from(values));
+    }
+
+    @Test
+    void refusesMissingSettingInsteadOfSilentlyChangingBehaviour() {
+        assertThrows(IllegalArgumentException.class, () -> ChronicleConfig.from(Map.of("config-version", 1)));
+    }
+
+    @Test
+    void refusesQuotedBoolean() {
+        var values = validConfig(true);
+        values.put("diagnostics.show-runtime-details", "false");
+        assertThrows(IllegalArgumentException.class, () -> ChronicleConfig.from(values));
+    }
+
+    @Test
+    void catchesMisspelledKeys() {
+        var values = validConfig(true);
+        values.put("diagnostics.show-runtime-detail", false);
+        assertThrows(IllegalArgumentException.class, () -> ChronicleConfig.from(values));
+    }
+
+    @Test
+    void shippedYamlLoadsWithoutAServer() throws Exception {
+        var resource = getClass().getResourceAsStream("/config.yml");
+        try (var reader = new java.io.InputStreamReader(java.util.Objects.requireNonNull(resource),
+                java.nio.charset.StandardCharsets.UTF_8)) {
+            var yaml = new YamlConfiguration();
+            yaml.load(reader);
+            assertEquals(new ChronicleConfig(true), ChronicleConfig.from(yaml.getValues(true)));
+        }
+    }
+
+    @Test
+    void malformedYamlIsAnError() {
+        var yaml = new YamlConfiguration();
+        assertThrows(InvalidConfigurationException.class, () -> yaml.load(new StringReader("diagnostics: [")));
+    }
+
+    private static Map<String, Object> validConfig(boolean visible) {
+        return new HashMap<>(Map.of("config-version", 1, "diagnostics.show-runtime-details", visible));
+    }
+}

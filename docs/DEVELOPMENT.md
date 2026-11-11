@@ -1,94 +1,110 @@
 # Development guide
 
-Status: proposed workflow, 11 November 2026. This repository currently contains documentation, issue templates and the existing MIT license. There are no source files, build scripts, Wrapper, CI jobs or tests. Commands marked “planned” will not work until the indicated milestone adds them.
+Status: first build implemented, 11 November 2026. The project builds a bootstrap plugin, validates configuration and provides `/chronicle status`. Persistent event capture, SQLite, queries and rollback are not implemented. [ROADMAP.md](ROADMAP.md) separates the bootstrap from the remaining foundation work.
 
-The [repository evidence and decisions](ARCHITECTURE.md#repository-evidence-and-decisions) describe the initial Git history and existing MIT license. Documentation review can be performed today; plugin build and runtime verification cannot. Do not present this plan as completed engineering or add invented releases, users or benchmark badges.
+## Environment and pinned inputs
 
-## Proposed environment and dependencies
-
-| Tool / dependency | Direction and version policy |
+| Input | Current pin / policy |
 | --- | --- |
-| JDK | Java 25 for compilation and the initial Paper runtime; avoid preview language features |
-| Minecraft / Paper | Target 26.3 initially; pin a verified stable API artifact and server build/checksum in M1 |
-| Gradle | Kotlin DSL, checked-in Wrapper pinned to a Java 25-compatible stable release; no global Gradle needed after bootstrap |
-| SQLite | Xerial `org.xerial:sqlite-jdbc`, pinned; verify the bundled engine is at least 3.51.3 and maintained |
-| Tests | JUnit Jupiter through a pinned JUnit BOM; real file-backed SQLite integration tests; real Paper fixtures |
-| Player-facing text | Paper-provided Adventure; do not bundle another copy unnecessarily |
+| Java | JDK 25 toolchain and Java 25 bytecode; no preview features |
+| Paper API | `io.papermc.paper:paper-api:26.3.build.248-stable`, compile-only in the distributable |
+| Paper test server | Minecraft 26.3, build 248; URL and SHA-256 in `gradle/paper-test.properties` |
+| Gradle | 9.9.1, official Wrapper scripts/JAR and verified distribution checksum |
+| JUnit | Jupiter via BOM 6.1.3 |
+| SQLite JDBC | Not yet added; remains a later M1 task |
 
-Paper's [setup guide](https://docs.papermc.io/paper/dev/project-setup/) documents `compileOnly` Paper API dependencies and Java 25. Its [Java requirements](https://docs.papermc.io/paper/getting-started/) require Java 25 for 26.1+. [Gradle's compatibility matrix](https://docs.gradle.org/current/userguide/compatibility.html) supports running on Java 25 from 9.1.0 onward; select and pin an appropriate maintained version in M1, not a dynamic “latest”. These sources were checked on 11 November 2026.
+Set `JAVA_HOME` to an installed JDK 25. The build does not automatically install a JDK. The Wrapper retrieves Gradle; no global Gradle is required. An IDE should import this as a Gradle project using JDK 25. Initial dependency resolution needs internet; cached builds can use `--offline`.
 
-The [Xerial driver](https://github.com/xerial/sqlite-jdbc) bundles native libraries. Package it deliberately, retain service descriptors/native resources and license notices, and test extraction/loading on supported hosts. Avoid blindly relocating JDBC native resource paths. An initial self-contained distributable is preferred to runtime dependency downloads, but validate the packaging plugin and artifact contents in M1. Do not assume Paper's internal libraries form Chronicle's dependency contract.
+Pins were checked against [Paper's Maven metadata](https://repo.papermc.io/repository/maven-public/io/papermc/paper/paper-api/maven-metadata.xml), [Paper's server build metadata](https://fill.papermc.io/v3/projects/paper/versions/26.3/builds/248), [Gradle's version service](https://services.gradle.org/versions/current), and [JUnit's Maven metadata](https://repo.maven.apache.org/maven2/org/junit/junit-bom/maven-metadata.xml). Paper's [setup guide](https://docs.papermc.io/paper/dev/project-setup/) and Gradle's [compatibility matrix](https://docs.gradle.org/current/userguide/compatibility.html) explain the platform/toolchain requirements. Recheck authoritative sources when upgrading.
 
-[JUnit](https://junit.org/) currently identifies JUnit 6 as its current generation. Use Jupiter APIs with a compatible pinned release; no test dependency has been installed or selected in this checkout. A Paper mocking library is optional only if it supports the target API and adds useful tests. It does not replace a real server.
+## Build and checks
 
-Use plain JDBC prepared statements and small repositories; no connection pool is needed for one owned SQLite writer and two fixed readers. A future MySQL backend may justify a maintained pool such as HikariCP, but it is not an initial dependency. Numbered transactional SQL migrations are sufficient initially; reconsider an established migration library if migration requirements become complex.
+Use `.\gradlew.bat` in Windows PowerShell or `bash ./gradlew` on Linux/macOS before the task names below. `bash` also works when the checkout does not preserve executable permissions.
 
-## Build bootstrap and proposed workflow
-
-The [first roadmap task](ROADMAP.md#first-development-task) owns creation of the build. It must add:
-
-- `settings.gradle.kts`, `build.gradle.kts`, a verified Gradle Wrapper and distribution checksum, and exact dependency versions with verification/locking where applicable.
-- A Java 25 toolchain, `compileOnly` Paper API from its official repository, packaged runtime JDBC dependency, JUnit execution, and separated integration-test tasks.
-- `src/main/resources/plugin.yml` with the real entry point and target `api-version`, defaults in `config.yml`, and versioned SQL migration resources as storage is added.
-- Minimal CI for compilation/tests and future packaging, plus ignored local server/build output. Do not commit downloaded server JARs, world data, databases, credentials or logs.
-
-The 26.3 API uses the `io.papermc.paper:paper-api` artifact and build-specific version format. Resolve an actual stable coordinate, rather than copying the dynamic `26.3.build.+` example into a reproducible build. The exact coordinate is intentionally not fabricated here.
-
-Proposed task contract (not currently available):
-
-| Command, using the future Wrapper | Purpose / introduction |
+| Task | Implemented behaviour |
 | --- | --- |
-| `./gradlew clean build` | Compile, run standard checks and produce the distributable; M1 |
-| `./gradlew test` | Pure logic and small adapter unit tests; M1 |
-| `./gradlew integrationTest` | File-backed database and worker/lifecycle tests; M1 |
-| `./gradlew paperIntegrationTest` | Explicit disposable Paper fixture suite; begin M1, expand M2/M3 |
-| `./gradlew runServer` | Optional local disposable server task, if configured in M1 |
-| `./gradlew benchmark` | Reproducible synthetic/DB benchmark entry point; M5 |
+| `clean build` | Compile with lint warnings treated as errors, run JUnit and packaged-JAR checks, compile the harness, produce both JARs |
+| `test` | Configuration, command/permission, artifact and observation-buffer tests; no Minecraft process |
+| `paperTestPluginJar` | Build the separate `ChronicleFixture` diagnostic plugin |
+| `paperIntegrationTest` | Explicit opt-in real Paper startup/lifecycle and synthetic-dispatch tests; EULA acceptance required |
 
-Windows equivalents use `./gradlew.bat`. `build` should include unit and database integration checks once both exist; the slower server suite can remain explicit and separately required in CI. Record actual task behaviour when implemented. Avoid publishing a build command as proof of success without running it.
+There is no `integrationTest` database task, `runServer` task or `benchmark` task yet. Add them when the relevant implementation exists rather than presenting empty tasks as checks.
 
-For a future local runtime test, use a separate directory outside production server data, obtain the pinned Paper JAR/checksum from PaperMC, satisfy the server's EULA requirements, and run with the documented JDK. Start with only Chronicle and the fixture plugin, then add selected interaction plugins. Keep a resettable world fixture and recorded server settings. Never point the fixture task at an existing production world or database. The harness must not silently accept terms or upload logs/worlds.
+Artifacts:
 
-## Proposed organisation
+- `build/libs/chronicle-0.1.0-SNAPSHOT.jar`: the main bootstrap plugin, containing Chronicle classes, descriptor, defaults and MIT license. Paper/Adventure are provided by the server; no third-party runtime library is bundled.
+- `build/libs/chronicle-0.1.0-SNAPSHOT-paper-test-plugin.jar`: the separate disposable-server fixture. It is not a Chronicle release artifact.
+- `build/reports/tests/test/index.html`: local JUnit report. XML reports are under `build/test-results/test/`.
 
-This tree shows future files, not existing content:
+Gradle archives have stable entry ordering and timestamps disabled. The build checks that the actual plugin JAR has Java 25 bytecode, an expanded version, the correct descriptor and license, and no server or fixture classes.
+
+`gradle.lockfile` locks resolved dependency versions; `gradle/verification-metadata.xml` checks artifacts and metadata by SHA-256. The initial checksums record downloads from the declared official repositories, not independently signed provenance. Review upstream changes before intentionally regenerating them with `clean build --write-locks --write-verification-metadata sha256`. Do not regenerate checksums merely to suppress an unexplained mismatch.
+
+The Wrapper JAR's verified SHA-256 is `621008afc4f5d59357fcf06ffa644dd5aade5e091bdc363742710445f73cdaf8`. Its embedded `META-INF/LICENSE` and the scripts' upstream notices are retained. Distribution verification is configured in `gradle/wrapper/gradle-wrapper.properties`.
+
+## Disposable Paper tests
+
+The harness is [PaperSmokeTest.java](../src/paperIntegration/java/io/github/d3vx3n0/chronicle/harness/PaperSmokeTest.java). Review and accept the [Minecraft EULA](https://www.minecraft.net/eula) before opting in. The harness must not silently accept terms or upload logs/worlds.
+
+After acceptance, run:
+
+```powershell
+# Windows PowerShell
+.\gradlew.bat paperIntegrationTest -PacceptMinecraftEula=true
+```
+
+```sh
+# Linux/macOS
+bash ./gradlew paperIntegrationTest -PacceptMinecraftEula=true
+```
+
+Without the property, the task fails before any server download or server-directory creation. With it, the harness verifies the pinned Paper JAR, creates fresh directories under `build/paper-tests/`, binds to `127.0.0.1` on an ephemeral port, disables RCON/query, and starts Java with at most 1 GiB heap. Paper may download its own runtime inputs on first startup. It never uses an existing world.
+
+The first run loads both packaged plugins, checks status/permission behaviour, exercises controlled event dispatch and block sampling, then stops. The second starts the main plugin with an unsupported configuration version and verifies refusal, file preservation and server shutdown. Each run has a four-minute deadline and child-process cleanup. It retains `console.log` and the disposable world for diagnosis; `clean` removes build output, including this evidence.
+
+These fixtures use **synthetic player events dispatched through a real Paper runtime** and controlled world mutations. They validate listener routing, cancellation flags and sample ordering. They do not prove vanilla packet-driven event timing, real player attribution, protection-plugin interoperability or production capture completeness.
+
+For manual qualification, use a separately created disposable Paper 26.3/build 248 server and install both JARs. Do not set `chronicle.fixture.autorun`; the fixture otherwise starts its synthetic tests and shuts down the server. Grant the tester `chronicle.fixture` explicitly. Perform ordinary stone placement/breaking in survival and creative, repeat same-location changes, and inspect the latest ten attempts with `/chroniclefixture`. Repeat with a protection plugin that cancels actions and a fixture that denies placement. Record actual before/after world states and exact settings. The buffer holds at most 256 attempts, reports rejected attempts, skips unsupported multi-place events and never loads chunks to sample them. Restart to clear it.
+
+The observation labels deliberately include cancelled attempts and `LATER_SAMPLE_ONLY`: a later sample cannot establish every intermediate event state. Do not promote these records into production history without completing the capture-contract investigation and independent real-player tests in [TESTING.md](TESTING.md).
+
+## Repository organisation
 
 ```text
 build.gradle.kts / settings.gradle.kts / gradlew / gradlew.bat
-gradle/wrapper/
-src/main/java/<project-namespace>/
-  bootstrap/       config/          model/
-  capture/         platform/paper/
-  storage/sqlite/  query/           rollback/
-  command/         diagnostics/
-src/main/resources/
-  plugin.yml       config.yml      db/migration/
-src/test/java/
-src/integrationTest/java/
-src/paperIntegrationTest/           # harness/fixtures, exact layout chosen in M1
-docs/                              # existing design documents
-.github/workflows/                 # future build and release automation
+gradle/wrapper/                      # official Wrapper and distribution pin
+gradle/paper-test.properties         # server URL and checksum
+gradle/verification-metadata.xml     # dependency checksums
+gradle.lockfile
+src/main/java/io/github/d3vx3n0/chronicle/
+  bootstrap/                        # plugin lifecycle
+  command/                          # status and completion
+  config/                           # Paper-free strict settings
+src/main/resources/                 # plugin.yml and config.yml
+src/test/java/                      # JUnit tests
+src/paperTestPlugin/                 # separate event-observation fixture
+src/paperIntegration/java/           # standalone server process harness
+.github/workflows/build.yml          # Linux/Windows build; optional Paper run
+docs/                               # design, scope and evidence
 ```
 
-Use a valid lowercase Java package derived from project ownership; the GitHub handle's hyphens cannot appear directly in a Java identifier. Keep one distributable/project until code and test constraints demonstrate a reason to split it. Package boundaries follow [architecture responsibilities](ARCHITECTURE.md#responsibilities-and-data-flow).
+Future storage, model, capture, query and rollback packages follow [architecture responsibilities](ARCHITECTURE.md#responsibilities-and-data-flow). Keep one project until concrete code/test constraints justify a split. Do not add unused JDBC, pooling or ORM dependencies to the bootstrap. When SQLite arrives, preserve native driver resources/notices, verify engine version and package/load it on Windows and Linux.
 
 ## Engineering conventions
 
-- Keep domain models immutable and Paper-free. Prefer descriptive names, small methods and explicit constructor dependencies; avoid a service locator or global mutable plugin instance.
-- State thread ownership on adapters and asynchronous boundaries. Futures transport immutable results; no world API work on storage workers and no blocking database wait in a tick callback.
-- Use stable UUIDs and namespaced identifiers. Store UTC timestamps for filters, ordered capture identities for causality, and an injected clock in pure logic tests.
-- Persist complete versioned snapshots or explicitly mark unsupported/partial evidence. Do not catch a codec exception and silently substitute air, empty inventory or a generic material.
-- Bind all query values, allowlist SQL fragments such as sort columns/actions, and bound parsed time/radius/result limits. Validate before allocating or scheduling expensive work.
-- Treat cancellation, no-op, denied access, overload and partial failure as ordinary explicit outcomes. Error messages include an operation/correlation ID and next action, without leaking full item data or sensitive paths by default.
-- Append migrations; never edit one that has been applied to a released database. Document snapshot/schema compatibility and exercise upgrade failures alongside changes.
-- Start with consistent four-space Java indentation, UTF-8 and LF endings. Configure a standard formatter/checker during build bootstrap rather than maintaining handwritten style policing.
-- Write meaningful tests for invariants and past defects. Use an independent reference model for rollback; do not validate an algorithm by calling the same algorithm to generate expectations.
-- Require focused changes and evidence. Update affected requirements, support matrix and user guidance when behaviour changes. Avoid optimisation or dependencies without a concrete need.
+- Keep domain logic immutable and Paper-free. Use descriptive names, explicit constructor dependencies and small interfaces at tested boundaries.
+- Document thread ownership. No live Paper objects on storage workers, and no blocking I/O/future waits in capture or world-apply callbacks.
+- Use stable UUIDs, versioned complete snapshots, ordered capture identities and UTC timestamps. Keep partial/unknown evidence explicit.
+- Bind SQL values and bound allocations, queues, plans and query results when these systems are introduced. Treat overload and partial failure as explicit outcomes.
+- Append released migrations; never edit already-applied versions. Test upgrade/recovery before expanding persisted state.
+- Use four-space Java indentation, UTF-8 and consistent line endings from `.gitattributes`. Compilation currently checks all javac lint warnings; no separate formatter is configured yet.
+- Test invariants with independent expectations and preserve bug reproducers. Update requirements and status claims alongside behavioural changes.
+- Keep local worlds, databases, generated artifacts and credentials out of source control. Use disposable data for every destructive test.
 
-## Review and reproducibility
+## CI and review
 
-Before a PR, read [CONTRIBUTING.md](../CONTRIBUTING.md), run the checks available for that stage, and state any checks that could not run. For documentation-only changes, validate links, examples, factual status and `git diff --check`; don't invent a passing build.
+The build workflow pins action revisions, runs JDK 25 builds on Linux and Windows, verifies the Wrapper, and uses read-only repository permissions. Ordinary PR/push builds never start Minecraft. A manually dispatched workflow can run Paper tests only when its EULA acceptance input is explicitly selected. CI configuration is implemented; do not claim a remote run passed until GitHub has actually run it.
 
-Future CI should pin action revisions and dependency inputs, run with minimal permissions, avoid production secrets/data, and keep untrusted PR code isolated from release credentials. Store test seeds, runtime versions, fixtures and failure reports so bugs can be reproduced. Release jobs must exercise the packaged JAR, not just the IDE classpath.
+Workflow artifacts retain JARs, unit-test reports and runtime console logs for seven days, including failed runs. World data is not uploaded. Local Windows unit and Paper results are recorded in [TESTING.md](TESTING.md#current-build-evidence).
 
-Architecture, capture eligibility and recovery changes need review against the failure cases in [TESTING.md](TESTING.md). A release claim must point to actual implementation/test evidence. Any eventual programme submission should describe this real history and work without additional artificial repository activity.
+Run relevant checks, inspect the packaged artifact and review [CONTRIBUTING.md](../CONTRIBUTING.md) before a PR. Report exactly which checks ran and which were unavailable. Future logging/recovery claims require the relevant real-server and fault-injection evidence; successful bootstrap tests do not complete Milestone 1.

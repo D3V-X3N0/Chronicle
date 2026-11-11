@@ -1,14 +1,14 @@
 # Architecture
 
-Status: design baseline, 11 November 2026. There is no implementation. “Decision” below means a direction selected for this plan, not a shipped capability. Detailed schemas, codecs, and algorithms remain proposals subject to the milestone gates.
+Status: design baseline with the first bootstrap implemented, 11 November 2026. The build, lifecycle, strict configuration, status command and separate diagnostic fixture exist. Capture persistence, schemas, codecs and recovery algorithms below remain proposals subject to the milestone gates. See [development](DEVELOPMENT.md) and [test evidence](TESTING.md#current-build-evidence) for implemented behaviour; there is no public release.
 
 ## Repository evidence and decisions
 
-The inspected checkout and its available branches/tags contain one commit, `611d983` (11 November 2026), with `README.md` and an MIT `LICENSE`. No source, build files, tests, workflows, earlier architecture, or release tags were found. The remote is `https://github.com/D3V-X3N0/Chronicle.git`. This is greenfield development with an existing licensing decision; preserve that license and attribution. These observations describe available Git evidence, not unseen development elsewhere.
+The initial repository inspection found one commit, `611d983` (11 November 2026), with `README.md` and an MIT `LICENSE`. At that point there were no source/build files, tests, workflows, earlier architecture or release tags. The remote is `https://github.com/D3V-X3N0/Chronicle.git`. The documentation and first bootstrap followed that greenfield baseline; preserve the existing license and attribution. This is historical inspection evidence, not the current file inventory.
 
 | Decision for the initial design | Reason and trade-off |
 | --- | --- |
-| Paper/Minecraft 26.3, Java 25; exact builds pinned in M1 | Current official baseline; limits compatibility work to one tested line initially |
+| Paper/Minecraft 26.3 build 248, Java 25; Gradle 9.9.1 | First build's verified artifact pins; runtime capture/recovery compatibility still requires its own evidence |
 | One Gradle project with package boundaries | Enough separation for testing without premature multi-module or service architecture |
 | Conventional `plugin.yml`, public Paper API | Avoid internal server mappings and experimental plugin loading unless a demonstrated need appears |
 | SQLite through JDBC, one writer, bounded readers | Simple local deployment and explicit transaction ownership; one write throughput ceiling |
@@ -17,7 +17,7 @@ The inspected checkout and its available branches/tags contain one commit, `611d
 | Conservative, previewed rollback; one operation at a time | Easier conflict and recovery reasoning; limits concurrency |
 | Folia excluded from the first release | Region ownership and cross-region operations need separate design and testing |
 
-The [Paper setup guide](https://docs.papermc.io/paper/dev/project-setup/), [downloads](https://papermc.io/downloads/paper), and [plugin descriptor reference](https://docs.papermc.io/paper/dev/plugin-yml/) support the proposed platform choice. The download page listed Paper 26.3 build 248 at review time; that observation is not a resolved Maven dependency or a tested server. M1 must verify a matching published API artifact and server checksum instead of copying a floating dependency. Source checks are dated 11 November 2026.
+The [Paper setup guide](https://docs.papermc.io/paper/dev/project-setup/), [downloads](https://papermc.io/downloads/paper), and [plugin descriptor reference](https://docs.papermc.io/paper/dev/plugin-yml/) support the platform choice. The first build resolves API `26.3.build.248-stable` and pins matching server build 248 plus its SHA-256. These pins replace the earlier unresolved dependency proposal; they do not qualify logging or recovery. Source checks are dated 11 November 2026.
 
 ## Responsibilities and data flow
 
@@ -216,7 +216,7 @@ Track capture duration/allocation, queue count/bytes/oldest age, commit latency 
 
 | Open decision | Recommended direction | Evidence / decision gate |
 | --- | --- | --- |
-| Exact Paper API/server, Gradle and library versions | Pin a current stable 26.3 pair, Java 25-compatible wrapper, maintained JDBC/JUnit | M1 resolve artifacts, checksums and native loading; update if the target is no longer suitable |
+| SQLite driver and schema implementation | Choose a maintained JDBC artifact with the required fixed engine; keep native resources intact | Later M1 integration/native-loading tests; Paper/Gradle/JUnit pins already exist in the bootstrap |
 | Reliable before/after capture | Start with a small inert-block allowlist and explicit uncertain observations | M1 spike and M2 real-server cancellation, ordering and same-tick tests |
 | Block/item codecs and supported state list | Public API, explicit versioned codecs, inspect-only fallback | Round-trip fixtures per type/version before recovery support |
 | M4 transaction fidelity | Stage simple container/hopper cases; retain ambiguity | Pinned API/source inspection and real inventory interleaving fixtures |

@@ -4,8 +4,8 @@ about: Report a documentation/design defect or a reproducible implementation bug
 title: ""
 ---
 
-<!-- Chronicle is currently documentation-only. For a design/documentation issue,
-give the file/section and mark runtime-only fields as N/A. Do not imply a release exists. -->
+<!-- Chronicle currently has a bootstrap build, not production logging/recovery.
+For design/documentation issues, give the file/section and mark runtime-only fields as N/A. -->
 
 ## Problem
 
