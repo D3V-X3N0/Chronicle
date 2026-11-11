@@ -30,6 +30,7 @@ class ArtifactTest {
                     "Executor must enforce player permissions without blocking the trusted console in dispatch");
             assertFalse(descriptor.getBoolean("folia-supported"));
             assertNotNull(jar.getJarEntry("META-INF/LICENSE"));
+            assertNotNull(jar.getJarEntry("META-INF/THIRD_PARTY.md"));
             assertNotNull(jar.getJarEntry("config.yml"));
             String entryPoint = descriptor.getString("main");
             assertNotNull(entryPoint);

@@ -6,9 +6,11 @@ The goal is a maintainable, performance-conscious alternative to established too
 
 ## Current status
 
-**The development build records qualified player stone/air transitions in SQLite, provides read-only inspection and filtered lookup, and reports durability and coverage status. Recovery is not implemented. It is not comprehensive server protection, and there is no public release.**
+**The first prerelease, `v0.1.0-alpha.1`, records qualified player stone/air transitions in SQLite, provides read-only inspection and filtered lookup, and reports durability and coverage status. Recovery is not implemented. It is an evaluation alpha for disposable servers, not comprehensive server protection.**
 
 M1 and M2 are complete for the qualified scope: historical name/UUID resolution, exact filters, bounded asynchronous readers, requester-owned pagination, permission-aware commands and presentation-only reload. Unit, file-backed database, subprocess crash and packaged-native tests run in the build. Opt-in disposable Paper tests use actual network players, protection plugins, inspection interactions and exact history/command checks after restart. See the [investigation guide](docs/INVESTIGATION.md), [capture qualification](docs/CAPTURE_QUALIFICATION.md), [storage operations](docs/STORAGE.md) and [validation evidence](docs/TESTING.md#current-m2-evidence). The [roadmap](docs/ROADMAP.md) tracks completion gates. The existing [MIT license](LICENSE) is preserved.
+
+Download the plugin JAR, `SHA256SUMS` and `VALIDATION.md` from the [first alpha release](https://github.com/D3V-X3N0/Chronicle/releases/tag/v0.1.0-alpha.1). Read its [installation notes and limitations](docs/releases/v0.1.0-alpha.1.md) before evaluation. The stable release still requires the M3/M5/M6 gates.
 
 ## Direction
 
@@ -23,7 +25,7 @@ Chronicle prioritises correctness and data integrity, rollback safety, performan
 - Restore only changes actually applied by a recorded rollback, with fresh conflict checks.
 - Add container, hopper, explosion, environmental, and entity logging in separately tested stages.
 
-The initial release scope is deliberately limited to a tested block logging and recovery workflow. Inventory transaction logging and inventory rollback are different capabilities; neither is implemented, and inventory rollback is outside the first release. See the [product specification](docs/PRODUCT_SPEC.md) for boundaries.
+The initial stable release scope is deliberately limited to a tested block logging and recovery workflow. Inventory transaction logging and inventory rollback are different capabilities; neither is implemented, and inventory rollback is outside the first stable release. See the [product specification](docs/PRODUCT_SPEC.md) for boundaries.
 
 ## Intended platform and prerequisites
 
@@ -45,9 +47,9 @@ On Linux/macOS:
 bash ./gradlew clean build
 ```
 
-The development plugin is `build/libs/chronicle-0.1.0-SNAPSHOT.jar`. Install only that JAR in a disposable Paper 26.3 build 248 server's `plugins/` directory, restart, and run `chronicle status` from console. SQLite starts on its own worker; capture waits for `READY`. Players need explicit grants for `chronicle.status`, `chronicle.lookup`, `chronicle.inspect` or `chronicle.reload`; all default to false even for operators. See the [investigation workflow](docs/INVESTIGATION.md). Configuration is created at `plugins/Chronicle/config.yml`; invalid configuration disables the plugin and preserves the file. Only runtime-detail display and lookup page size can reload; storage settings require restart. History is stored at `plugins/Chronicle/history.db`; never delete a failed database or its WAL to silence an error.
+The alpha plugin is `build/libs/chronicle-0.1.0-alpha.1.jar`. Install only that JAR in a disposable Paper 26.3 build 248 server's `plugins/` directory, restart, and run `chronicle status` from console. SQLite starts on its own worker; capture waits for `READY`. Players need explicit grants for `chronicle.status`, `chronicle.lookup`, `chronicle.inspect` or `chronicle.reload`; all default to false even for operators. See the [investigation workflow](docs/INVESTIGATION.md). Configuration is created at `plugins/Chronicle/config.yml`; invalid configuration disables the plugin and preserves the file. Only runtime-detail display and lookup page size can reload; storage settings require restart. History is stored at `plugins/Chronicle/history.db`; never delete a failed database or its WAL to silence an error.
 
-`build/libs/chronicle-0.1.0-SNAPSHOT-paper-test-plugin.jar` is a separate diagnostic fixture. Do not install it on a production server. `build` runs unit/database/crash/native tests and compiles the harness without starting Minecraft. See [development setup](docs/DEVELOPMENT.md) for the opt-in Paper test command, EULA requirement, exact artifacts and fixture limitations.
+`build/libs/chronicle-0.1.0-alpha.1-paper-test-plugin.jar` is a separate diagnostic fixture. Do not install it on a production server. `build` runs unit/database/crash/native tests and compiles the harness without starting Minecraft. See [development setup](docs/DEVELOPMENT.md) for the opt-in Paper test command, EULA requirement, exact artifacts and fixture limitations.
 
 ## Documentation
 
@@ -66,4 +68,4 @@ The development plugin is `build/libs/chronicle-0.1.0-SNAPSHOT.jar`. Install onl
 
 Chronicle is intended to complement world backups. An asynchronous queue can lose uncommitted records on a crash, and a database transaction cannot atomically commit a Minecraft world save. The design makes those limits visible and requires cautious recovery rather than promising lossless logging or universal undo.
 
-There are no release dates or claims of production adoption. Progress is recorded through implementation, tests and issues. Future contributions should follow the [roadmap dependencies](docs/ROADMAP.md#milestone-3--safe-rollback-and-restoration).
+There are no stable release dates or claims of production adoption. Progress is recorded through implementation, tests and issues. Future contributions should follow the [roadmap dependencies](docs/ROADMAP.md#milestone-3--safe-rollback-and-restoration).

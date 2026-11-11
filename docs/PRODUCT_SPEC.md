@@ -10,20 +10,22 @@ The priority order is correctness and data integrity, rollback safety, performan
 
 ## Scope and support gates
 
+The owner-authorised `v0.1.0-alpha.1` prerelease exposes completed M1/M2 for disposable evaluation. Its [notes](releases/v0.1.0-alpha.1.md) define the narrower scope. The first **stable** release still requires the recovery and operational gates below; publishing the alpha does not complete M6.
+
 “Supported” means implemented, tested on a named Paper build, documented with limitations, and included in a release compatibility matrix. A listener existing in source is not sufficient.
 
 | Capability | Intended stage | Release boundary |
 | --- | --- | --- |
-| Direct player block placement and breaking | M1 capture; M2 reliable history | First release requirement; exact eligible block/state list established by tests |
-| Player UUID attribution, block inspection, filtered lookup | M2 | First release requirement |
-| Preview, confirmed rollback, restore by operation ID, recovery reporting | M3 | First release requirement for eligible block transitions |
+| Direct player block placement and breaking | M1 capture; M2 reliable history | First stable release requirement; exact eligible block/state list established by tests |
+| Player UUID attribution, block inspection, filtered lookup | M2 | First stable release requirement |
+| Preview, confirmed rollback, restore by operation ID, recovery reporting | M3 | First stable release requirement for eligible block transitions |
 | Multi-block structures and block entity metadata | Capture investigation in M1/M2; qualified codecs later | Initially inspection-only or unsupported unless complete grouped capture and restoration pass tests |
 | Container and hopper transactions | M4 | Separate logging capability; experimental until each inventory/action combination is qualified |
 | Explosions, fluids, fire, growth, decay, pistons, entity block changes | M4, staged by family | Promote separately; incomplete families remain visibly unsupported |
-| Inventory/container rollback, player inventory recovery, arbitrary entity resurrection | Later research | Outside first release |
+| Inventory/container rollback, player inventory recovery, arbitrary entity resurrection | Later research | Outside first stable release |
 | MySQL/MariaDB | Later, after SQLite evidence | No initial driver, schema promise, or supported configuration |
 
-The minimum recovery scope is ordinary, single-block, inert placement/break transitions with complete before/after state and safe surroundings. It excludes inventories, blocks with stored loot-table state, block entities, multi-block structures, fluid-sensitive changes, and dependent physics until explicitly qualified. A block's name alone does not prove a transition safe. The first public release must be useful for genuine investigation and recovery of this documented subset; it must not be marketed as comprehensive world protection.
+The minimum recovery scope is ordinary, single-block, inert placement/break transitions with complete before/after state and safe surroundings. It excludes inventories, blocks with stored loot-table state, block entities, multi-block structures, fluid-sensitive changes, and dependent physics until explicitly qualified. A block's name alone does not prove a transition safe. The first stable release must be useful for genuine investigation and recovery of this documented subset; it must not be marketed as comprehensive world protection.
 
 Block recovery changes world blocks only. It must not generate drops or experience itself, but it does not reclaim items already mined, dropped or picked up, or refund placement costs. Rebuilding a mined block can therefore increase available materials. Preview and operator documentation must explain that inventory/economy limitation; container contents and stored loot-table states remain excluded to avoid implying item-conserving recovery.
 
@@ -97,7 +99,7 @@ Use concise Adventure messages with plain-text fallbacks for console, readable t
 
 ## Initial configuration proposals
 
-These are starting values for development, not measured capacity or latency promises. M5 must justify or change numeric defaults before release; every hard limit has an explicit error path.
+These are starting values for development, not measured capacity or latency promises. M5 must justify or change numeric defaults before stable release; every hard limit has an explicit error path.
 
 | Setting | Proposed default and rationale |
 | --- | --- |

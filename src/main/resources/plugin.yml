@@ -2,7 +2,7 @@ name: Chronicle
 version: '${version}'
 main: io.github.d3vx3n0.chronicle.bootstrap.ChroniclePlugin
 api-version: '26.3'
-description: Development build with qualified stone/air history and bounded investigation. No recovery.
+description: Evaluation alpha with qualified stone/air history and bounded investigation. No recovery.
 author: DEV_X3N0
 website: https://github.com/D3V-X3N0/Chronicle
 commands:

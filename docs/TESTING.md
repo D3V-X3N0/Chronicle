@@ -2,6 +2,10 @@
 
 Status: M1 and M2 unit, database, crash, packaged-native, investigation, packet/restart and initial synthetic load checks are implemented, 11 November 2026. Broader recovery/operational performance suites below remain planned. Actual commands and runtime setup are in [DEVELOPMENT.md](DEVELOPMENT.md).
 
+## Alpha release evidence
+
+The [first alpha notes](releases/v0.1.0-alpha.1.md) define the advertised scope. Each published alpha includes `VALIDATION.md` naming the exact source commit, distributable SHA-256, local commands/results and Linux/Windows CI links, alongside `SHA256SUMS`. This keeps release evidence attached to the tested artifact. M2 measurements below remain tied to their original revisions; packaging the alpha does not extend those results into production-capacity or recovery claims.
+
 ## Current M2 evidence
 
 M2 retains M1's capture boundary and adds [investigation](INVESTIGATION.md). The

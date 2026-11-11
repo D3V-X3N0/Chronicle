@@ -1,8 +1,8 @@
-# Investigation in the M2 development build
+# Investigation in the first alpha
 
 Chronicle records only the [qualified direct-player stone/air transitions](CAPTURE_QUALIFICATION.md).
 Inspection and lookup read committed SQLite history. They do not recover blocks,
-read container contents or establish complete coverage. There is no release.
+read container contents or establish complete coverage. This is the [first evaluation alpha](releases/v0.1.0-alpha.1.md).
 
 ## Setup and commands
 

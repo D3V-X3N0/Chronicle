@@ -1,6 +1,6 @@
 # Storage and operations
 
-This development build stores only [qualified stone/air player transitions](CAPTURE_QUALIFICATION.md). M2 provides [lookup and inspection](INVESTIGATION.md); rollback, restore, pruning and backup commands remain unavailable. Use disposable servers while evaluating it.
+This evaluation alpha stores only [qualified stone/air player transitions](CAPTURE_QUALIFICATION.md). M2 provides [lookup and inspection](INVESTIGATION.md); rollback, restore, pruning and backup commands remain unavailable. Use disposable servers while evaluating it.
 
 ## Database and lifecycle
 

@@ -4,6 +4,10 @@ Status: M1 is complete for the qualified direct-player stone/air subset, with lo
 
 The main path is **M1 -> M2 -> M3 -> M5 -> M6**. M4 builds on M2's capture contracts and uses M3's safety model for any recovery research. Expanded families can be promoted separately after their tests pass; M4 is not permission to delay core correctness until M5. Tests, diagnostics, and basic failure handling start in M1.
 
+## Evaluation prerelease
+
+The owner-authorised [first alpha](releases/v0.1.0-alpha.1.md), tracked in [#8](https://github.com/D3V-X3N0/Chronicle/issues/8), packages completed M1/M2 for disposable evaluation. It includes no recovery or expanded event family. This early prerelease does not complete M3, M5 or M6; the original functional and operational gates remain requirements for the first stable release.
+
 ## First development task
 
 Scope: **Bootstrap a reproducible Paper 26.3 / Java 25 development harness and establish the ordinary-block capture contract.**
@@ -150,9 +154,9 @@ Exit criteria:
 - Long mixed-workload runs stay within configured memory bounds, reveal write saturation, and recover from recoverable faults without hiding coverage gaps.
 - Backup restore, migration failure and pruning preserve recovery dependencies; numerical defaults and regression thresholds are justified by results.
 
-## Milestone 6 — First public release
+## Milestone 6 — First stable release
 
-**Depends on:** M1–M3 and M5 gates, plus passing gates or explicit deferrals for M4 families. Public-release work has not started.
+**Depends on:** M1–M3 and M5 gates, plus passing gates or explicit deferrals for M4 families. Stable-release qualification remains pending. The evaluation alpha supplies initial versioned packaging and notices, but does not satisfy this milestone.
 
 Tasks:
 
@@ -164,4 +168,4 @@ Tasks:
 
 Exit criteria: a new administrator can reproduce installation, investigation, previewed rollback, restore, degraded-status interpretation and restart reconciliation from the documentation; all required checks pass for the exact artifact; every advertised capability has evidence. A developer must be able to reproduce the checks from a clean checkout.
 
-Publishing a release is a later owner-authorised action. This roadmap neither creates releases nor manufactures activity or programme eligibility. Post-release priorities should follow actual incident reports and measurements.
+Publishing each release requires owner authorisation. The first evaluation alpha is authorised separately; this does not authorise a stable release. This roadmap neither creates releases nor manufactures activity or programme eligibility. Post-release priorities should follow actual incident reports and measurements.

@@ -1,6 +1,6 @@
 # Development guide
 
-Status: M1 capture/storage and M2 investigation are implemented, 11 November 2026. The exact qualified subset and operational limits are in [CAPTURE_QUALIFICATION.md](CAPTURE_QUALIFICATION.md) and [STORAGE.md](STORAGE.md). Lookup and inspection are documented in [INVESTIGATION.md](INVESTIGATION.md); recovery is not implemented. There is no public release.
+Status: M1 capture/storage and M2 investigation are implemented, 11 November 2026. The exact qualified subset and operational limits are in [CAPTURE_QUALIFICATION.md](CAPTURE_QUALIFICATION.md) and [STORAGE.md](STORAGE.md). Lookup and inspection are documented in [INVESTIGATION.md](INVESTIGATION.md); recovery is not implemented. The first release is the evaluation [alpha](releases/v0.1.0-alpha.1.md); stable-release gates remain unmet.
 
 ## Environment and pinned inputs
 
@@ -31,14 +31,14 @@ Use `.\gradlew.bat` on Windows or `bash ./gradlew` on Linux/macOS before these t
 | `paperPacketTest` | Opt-in real TCP player actions, two protection fixtures, protected inspection, permissions, reload and exact SQL/command history after restart |
 | `historyLoadTest` | Opt-in synthetic SQLite index and concurrent-write/query measurements; disposable 10k/100k/1m histories |
 
-Lookup tests compare to an independent seeded oracle and check cursor ownership, cancellation and bounds. Recovery and public release tasks do not exist. `historyLoadTest -PhistorySizes=10000,100000,1000000` runs the synthetic baseline; results under `build/load-tests/` are described in [M2_MEASUREMENTS.md](M2_MEASUREMENTS.md). Both ordinary test tasks run without Minecraft. Reports are at `build/reports/tests/test/index.html` and `build/reports/tests/integrationTest/index.html`, with XML under the corresponding `build/test-results/` directories.
+Lookup tests compare to an independent seeded oracle and check cursor ownership, cancellation and bounds. Recovery tasks and an automated publishing task do not exist. Alpha publication is manual after build/runtime CI, with an annotated tag, checksums and validation evidence. `historyLoadTest -PhistorySizes=10000,100000,1000000` runs the synthetic baseline; results under `build/load-tests/` are described in [M2_MEASUREMENTS.md](M2_MEASUREMENTS.md). Both ordinary test tasks run without Minecraft. Reports are at `build/reports/tests/test/index.html` and `build/reports/tests/integrationTest/index.html`, with XML under the corresponding `build/test-results/` directories.
 
 Artifacts:
 
-- `build/libs/chronicle-0.1.0-SNAPSHOT.jar`: plugin, config, schemas, MIT license and SQLite JDBC/native resources/notices. Only this JAR belongs in the evaluated server's plugins directory.
-- `build/libs/chronicle-0.1.0-SNAPSHOT-paper-test-plugin.jar`: test-only fixture; never install it on production.
+- `build/libs/chronicle-0.1.0-alpha.1.jar`: plugin, config, schemas, MIT license, third-party notice inventory and SQLite JDBC/native resources/notices. Only this JAR belongs in the evaluated server's plugins directory.
+- `build/libs/chronicle-0.1.0-alpha.1-paper-test-plugin.jar`: test-only fixture; never install it on production.
 
-The driver is loaded separately from Paper's older bundled JDBC. Packaging tests exercise an isolated classloader containing only the distributable and JDK classes. Both OS CI jobs load the actual native library. Archives have stable ordering/timestamps. The artifact test checks Java 25 bytecode, descriptor/version, permission defaults, license and exclusion of server/fixture classes.
+The driver is loaded separately from Paper's older bundled JDBC. Packaging tests exercise an isolated classloader containing only the distributable and JDK classes. Both OS CI jobs load the actual native library. Archives have stable ordering/timestamps. The artifact test checks Java 25 bytecode, descriptor/version, permission defaults, license/notice inventory and exclusion of server/fixture classes.
 
 Dependency versions/checksums are in `gradle.lockfile` and `gradle/verification-metadata.xml`. Review upstream changes before intentionally updating with `build --write-locks --write-verification-metadata sha256`. Never regenerate checksums to suppress an unexplained mismatch. Wrapper JAR SHA-256: `621008afc4f5d59357fcf06ffa644dd5aade5e091bdc363742710445f73cdaf8`; its upstream notices remain intact.
 

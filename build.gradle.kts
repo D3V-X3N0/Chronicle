@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "io.github.d3vx3n0"
-version = "0.1.0-SNAPSHOT"
+version = "0.1.0-alpha.1"
 val pluginVersion = version.toString()
 
 repositories {
@@ -63,7 +63,7 @@ tasks.jar {
     from(configurations.runtimeClasspath.get().map { zipTree(it) }) {
         exclude("META-INF/MANIFEST.MF", "META-INF/*.SF", "META-INF/*.RSA", "META-INF/*.DSA", "module-info.class", "META-INF/versions/**/module-info.class")
     }
-    from("LICENSE") { into("META-INF") }
+    from(listOf("LICENSE", "THIRD_PARTY.md")) { into("META-INF") }
     manifest.attributes("Implementation-Version" to project.version)
 }
 
