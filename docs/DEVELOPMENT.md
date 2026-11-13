@@ -1,6 +1,6 @@
 # Development guide
 
-Status: 13 November 2026. M1/M2 and the narrow M3 recovery implementation exist; final M3 qualification is in progress. See [capture](CAPTURE_QUALIFICATION.md), [storage](STORAGE.md), [investigation](INVESTIGATION.md) and [recovery](RECOVERY.md). The published [alpha](releases/v0.1.0-alpha.1.md) remains M1/M2 only; M5/M6 and release gates remain unmet.
+Status: 13 November 2026. M1/M2 and narrow M3 recovery are complete for the qualified scope. See [capture](CAPTURE_QUALIFICATION.md), [storage](STORAGE.md), [investigation](INVESTIGATION.md) and [recovery](RECOVERY.md). The published [alpha](releases/v0.1.0-alpha.1.md) remains M1/M2 only; M5/M6 and release gates remain unmet.
 
 ## Environment and pinned inputs
 
@@ -105,4 +105,4 @@ Keep one Gradle project and explicit dependencies. No ORM, connection pool, remo
 
 The pinned-action workflow runs JDK 25 `clean build` on Linux and Windows with read-only repository permissions. Ordinary push/PR builds do not start Minecraft. Manual workflow dispatch starts all three Paper harnesses only with explicit EULA acceptance. Logs and test reports are retained for seven days; worlds/databases are not uploaded.
 
-Record actual commit/run results in [TESTING.md](TESTING.md#current-m2-evidence). M3 evidence and remaining acceptance gates are recorded in [M3_PLAN.md](M3_PLAN.md). See [CONTRIBUTING.md](../CONTRIBUTING.md) for review and licensing expectations.
+Record actual commit/run results in [TESTING.md](TESTING.md#current-m3-evidence). M3 evidence and remaining M5/M6 limitations are recorded in [M3_PLAN.md](M3_PLAN.md). See [CONTRIBUTING.md](../CONTRIBUTING.md) for review and licensing expectations.

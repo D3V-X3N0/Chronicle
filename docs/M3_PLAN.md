@@ -1,8 +1,9 @@
-# M3 implementation and qualification plan
+# M3 implementation and qualification evidence
 
 Started 13 November 2026 from clean `main` at `5465c10`. M1/M2 and the
 `19e67b1` evaluation alpha are verified baselines; build run 43107753555 passed
-on Linux and Windows. M3 is in progress, not qualified or complete.
+on Linux and Windows. M3 completed its qualified inert-block scope on 13 November
+2026; M5/M6 and any new release remain separate gates.
 
 The scope is canonical stone/air, codec 1, data version 5023 on the pinned
 Paper build. No inventory, block entity, multi-block or unsafe physics recovery.
@@ -44,10 +45,10 @@ Existing history and migration bytes remain immutable.
 - Recovery creates no drops/XP and does not reclaim previously mined items or
   refund placement costs. It does not conserve the server economy.
 
-Progress and exact evidence will be added as each gate is verified. M5/M6 and
-release publication remain separate work.
+The evidence below records the verified gates. M5/M6 and release publication
+remain separate work.
 
-## Current implementation evidence
+## Implementation evidence
 
 The milestone is tracked in [#9](https://github.com/D3V-X3N0/Chronicle/issues/9)
 (application), [#10](https://github.com/D3V-X3N0/Chronicle/issues/10) (planning and
@@ -74,7 +75,9 @@ disposable directories are under `build/paper-tests/recovery-crash-*`.
 ## Final local acceptance
 
 Implementation commit `5dbee17f938d80416bc572975346b243654c255d` passed on
-Windows 11 / Oracle JDK 25.0.1 with the locked toolchain:
+Windows 11 Home build 26200 / Oracle JDK 25.0.1 with the locked toolchain
+(AMD Ryzen 9 7950X, 16 cores/32 logical processors; Paper subprocesses use
+256 MiB initial/1 GiB maximum heap):
 
 ```powershell
 .\gradlew.bat clean build paperIntegrationTest paperPacketTest paperRecoveryTest -PacceptMinecraftEula=true --no-daemon --console=plain
@@ -111,5 +114,34 @@ it was corrected to the earlier unfinished-operation refusal actually returned.
 `build` and the focused actual-server scenario passed (`build-m3-review-fixed.log`,
 `recovery-crash-after-intent-3843686043458717142`). Production JAR bytes are unchanged.
 
-Linux/Windows final runtime CI is pending. M3 is not marked complete by local
-evidence alone; no new release has been published.
+## Cross-platform completion
+
+Final [runtime run 43501845007](https://github.com/D3V-X3N0/Chronicle/actions/runs/43501845007)
+passed on Linux and Windows at `a06b4768fdc52e64d12278915a243b0f21a4f357`.
+Both downloaded JUnit reports contain **86 tests and zero failures/errors/skips**.
+Both jobs passed all three Paper harnesses, all eight crash/restart boundaries,
+the strengthened unknown/desired-state review and all four backup phases.
+The [push build](https://github.com/D3V-X3N0/Chronicle/actions/runs/43501843243)
+also passed both operating systems. The preceding implementation's
+[runtime run](https://github.com/D3V-X3N0/Chronicle/actions/runs/43500990970)
+passed both as well; no runtime failure was waived.
+
+| Environment | Codec applications | Maximum call (ns) | Maximum slice (ns) |
+| --- | ---: | ---: | ---: |
+| Local Windows | 98 | 5,116,500 | 5,140,500 |
+| Linux CI | 98 | 3,337,607 | 3,893,498 |
+| Windows CI | 98 | 9,291,000 | 9,323,500 |
+
+These single-run scheduling observations show why the two-millisecond budget
+cannot be a hard API-call latency guarantee. They do not replace M5 profiling.
+The Windows CI plugin matches the local SHA-256 above. The Linux plugin SHA-256 is
+`0f18da29e1f0a0534623125923ca2fba1e614f2a970dcf63a3013f745668e3e2`.
+Comparing every ZIP entry found only `META-INF/LICENSE` differed, with identical
+text after CRLF/LF normalization; no broader reproducibility claim is made.
+CI retains JARs, JUnit reports and server/restart logs for seven days; workflow logs
+and this committed evidence identify the exact revision and reproduction commands.
+
+M3's four focused issues and milestone are complete for canonical inert stone/air
+only. Inventory/economy restoration, broader physics/capture, production performance,
+retention and backup commands remain excluded or future work. No new release has
+been published; `v0.1.0-alpha.1` remains the M1/M2 evaluation release.

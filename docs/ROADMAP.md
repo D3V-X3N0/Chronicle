@@ -92,28 +92,29 @@ Exit criteria:
 
 **Depends on:** M2 trustworthy ordered history and query boundaries; starts only with qualified reversible state codecs.
 
-**In final qualification:** [implementation and evidence](M3_PLAN.md),
+**Completed 13 November 2026 for the qualified inert stone/air subset:** [implementation and evidence](M3_PLAN.md),
 [operator workflow](RECOVERY.md) and [M3 milestone](https://github.com/D3V-X3N0/Chronicle/milestone/3).
 The application codec passed its disposable Paper gate before commands were wired.
-Do not mark the exit criteria complete until the final local and CI evidence exists.
+Final local and Linux/Windows builds, real-player/runtime, crash/restart and independent
+world/database backup checks passed. M5/M6 remain separate gates.
 
 Tasks:
 
-- Implement pure planning with bounded frozen selections, dependency/conflict detection, preview expiry and idempotent confirmation.
-- Add operation/step migrations, durable intents, actual before/after snapshots, explicit outcomes and audit links to original changes.
-- Build a server-thread executor with time/count budgets, loaded-chunk checks, scoped event correlation and one active operation.
-- Implement restore by rollback ID with exactly-once effective step eligibility; never rerun original filters.
-- Add pause/progress reporting, restart reconciliation views, and explicit operator-reviewed continuation/compensation plans.
-- Test partial failures and world-save divergence before widening eligible blocks.
+- [x] Implement pure planning with bounded frozen selections, dependency/conflict detection, preview expiry and idempotent confirmation.
+- [x] Add operation/step migrations, durable intents, actual before/after snapshots, explicit outcomes and audit links to original changes.
+- [x] Build a server-thread executor with time/count budgets, loaded-chunk checks, scoped event correlation and one active operation.
+- [x] Implement restore by rollback ID with exactly-once effective step eligibility; never rerun original filters.
+- [x] Add pause/progress reporting, restart reconciliation views, and explicit operator-reviewed continuation/compensation plans.
+- [x] Test partial failures and world-save divergence before widening eligible blocks.
 
 Exit criteria:
 
-- Reference worlds match expected states after eligible rollback and restoration, while unrelated edits remain untouched.
-- Stale previews, intervening unselected edits (including changes back to identical state), unsupported metadata and known coverage gaps prevent unsafe writes.
-- A duplicate confirmation or retried outcome cannot apply a step twice; generated history is attributed to the operation exactly once.
-- Killing the process at every journal boundary produces an explainable persisted state. Restart performs no automatic uncertain mutation; even acknowledged steps are audited when world saves may lag.
-- Partial operations list exact applied/skipped/unknown outcomes; restore never includes a skipped or unverified step.
-- Per-tick work and single-call overruns are measured on a real server; no synchronous chunk load/generation or blocking database wait occurs in execution.
+- [x] Reference worlds match expected states after eligible rollback and restoration, while unrelated edits remain untouched.
+- [x] Stale previews, intervening unselected edits (including changes back to identical state), unsupported metadata and known coverage gaps prevent unsafe writes.
+- [x] A duplicate confirmation or retried outcome cannot apply a step twice; generated history is attributed to the operation exactly once.
+- [x] Killing the process at every journal boundary produces an explainable persisted state. Restart performs no automatic uncertain mutation; even acknowledged steps are audited when world saves may lag.
+- [x] Partial operations list exact applied/skipped/unknown outcomes; restore never includes a skipped or unverified step.
+- [x] Per-tick work and single-call overruns are measured on a real server; no synchronous chunk load/generation or blocking database wait occurs in execution.
 
 **Risk gate:** inventory restoration, arbitrary block entities and unsafe physics remain excluded unless a separate complete state and side-effect model passes tests. The initial engine can ship with a documented inert-block subset.
 

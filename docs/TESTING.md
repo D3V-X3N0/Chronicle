@@ -1,10 +1,10 @@
 # Testing and validation
 
-Status: 13 November 2026. M1/M2 and narrow M3 recovery suites are implemented. Final M3 qualification is in progress; broader operational performance, retention and expanded state suites remain planned. Actual commands and runtime setup are in [DEVELOPMENT.md](DEVELOPMENT.md).
+Status: 13 November 2026. M1/M2 and narrow M3 recovery suites are implemented. M3 is complete for its qualified inert stone/air scope; broader operational performance, retention and expanded state suites remain planned. Actual commands and runtime setup are in [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## Current M3 evidence
 
-[M3_PLAN.md](M3_PLAN.md) records local evidence and final qualification progress.
+[M3_PLAN.md](M3_PLAN.md) records exact local and Linux/Windows completion evidence.
 [RECOVERY.md](RECOVERY.md) defines the implemented boundaries. The build adds
 forward schema-3 migration/failure tests, an independent seeded planning oracle,
 bounded selection/control checks, effective rollback/restore claims and subprocess
@@ -16,8 +16,13 @@ permission revocation; pause/continuation; identical-state intervening edits;
 retained-effect checks; eight actual server-kill boundaries; and independently
 restored stopped-server world/database backups. A clean plugin shutdown before world save
 does not bypass retained-effect revalidation. This is process-crash evidence, not
-hardware power-loss evidence. Final clean-build/runtime and CI results will be
-recorded before marking M3 complete.
+hardware power-loss evidence. The full local clean build and all three Paper
+harnesses passed with **86 tests**, zero failures/errors/skips. Final
+[runtime CI 43501845007](https://github.com/D3V-X3N0/Chronicle/actions/runs/43501845007)
+passed all 86 tests and all three harnesses on Linux and Windows at
+`a06b4768fdc52e64d12278915a243b0f21a4f357`; downloaded XML and server logs were
+verified on both. The [push build](https://github.com/D3V-X3N0/Chronicle/actions/runs/43501843243)
+also passed both OS runners. M5/M6 and release publication remain separate.
 
 ## Alpha release evidence
 
@@ -49,7 +54,7 @@ identical text after CRLF/LF normalization. No broader cross-platform reproducib
 guarantee is claimed. All three release assets were downloaded before publication
 and anonymously after publication, and matched the staged bytes and checksums.
 The public release is a prerelease, not a stable/latest release. [Issue #8](https://github.com/D3V-X3N0/Chronicle/issues/8)
-tracks completion; M3/M5/M6 remain pending.
+tracks that publication; M3/M5/M6 were pending at the alpha release.
 
 Earlier [run 43096475204](https://github.com/D3V-X3N0/Chronicle/actions/runs/43096475204),
 its retry, and the initial [dispatch 43097586644](https://github.com/D3V-X3N0/Chronicle/actions/runs/43097586644)

@@ -106,8 +106,9 @@ World slices stop at 50 steps or two milliseconds of measured work. The executor
 currently waits for each outcome acknowledgement before preparing a dependent step;
 throughput is deliberately limited. A single API call cannot be preempted and can
 overrun two milliseconds. Status reports maximum call/slice duration and overrun
-count. The real-server codec fixture observed a roughly 5.6 ms cold call; the budget
-is a scheduling cutoff, not a hard maximum tick duration.
+count. The real-server codec fixture observed single-call maxima of roughly 5.1 ms locally
+and 9.3 ms on Windows CI; the budget is a scheduling cutoff, not a hard maximum
+tick duration. See the exact [measurements and limits](M3_PLAN.md#cross-platform-completion).
 
 Applied, skipped, failed, unknown and unattempted steps remain separately visible.
 Permission loss, operator pause, unavailable storage or uncertainty stop further

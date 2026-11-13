@@ -1,6 +1,6 @@
 # Architecture
 
-Status: 13 November 2026. M1/M2 are implemented; M3 adds schema-3 journals, frozen plans and conservative inert stone/air recovery, with final qualification in progress. [RECOVERY.md](RECOVERY.md) defines actual recovery behaviour and development bounds. Broader codecs, performance tuning and retention remain proposals. The [first evaluation alpha](releases/v0.1.0-alpha.1.md) remains M1/M2 only. Stable-release gates remain unmet.
+Status: 13 November 2026. M1/M2 are implemented; M3 adds schema-3 journals, frozen plans and conservative inert stone/air recovery, qualified on the pinned runtime by local and Linux/Windows suites. [RECOVERY.md](RECOVERY.md) defines actual recovery behaviour and development bounds. Broader codecs, performance tuning and retention remain proposals. The [first evaluation alpha](releases/v0.1.0-alpha.1.md) remains M1/M2 only. Stable-release gates remain unmet.
 
 ## Repository evidence and decisions
 

@@ -6,15 +6,15 @@ The goal is a maintainable, performance-conscious alternative to established too
 
 ## Current status
 
-**The development snapshot adds previewed inert stone/air rollback and restoration, with durable journals and restart review. M3 final qualification is in progress. The published `v0.1.0-alpha.1` remains the M1/M2 logging and investigation alpha and contains no recovery. Use disposable evaluation servers.**
+**The development snapshot adds previewed inert stone/air rollback and restoration, with durable journals and restart review. M3 is complete for this qualified subset. The published `v0.1.0-alpha.1` remains the M1/M2 logging and investigation alpha and contains no recovery. Use disposable evaluation servers.**
 
-M1 and M2 are complete for the qualified scope: historical name/UUID resolution, exact filters, bounded asynchronous readers, requester-owned pagination, permission-aware commands and presentation-only reload. Unit, file-backed database, subprocess crash and packaged-native tests run in the build. Opt-in disposable Paper tests use actual network players, protection plugins, inspection interactions and exact history/command checks after restart. See the [investigation guide](docs/INVESTIGATION.md), [capture qualification](docs/CAPTURE_QUALIFICATION.md), [storage operations](docs/STORAGE.md) and [validation evidence](docs/TESTING.md#current-m2-evidence). The [roadmap](docs/ROADMAP.md) tracks completion gates. The existing [MIT license](LICENSE) is preserved.
+M1 and M2 are complete for the qualified scope: historical name/UUID resolution, exact filters, bounded asynchronous readers, requester-owned pagination, permission-aware commands and presentation-only reload. Unit, file-backed database, subprocess crash and packaged-native tests run in the build. Opt-in disposable Paper tests use actual network players, protection plugins, inspection interactions and exact history/command checks after restart. See the [investigation guide](docs/INVESTIGATION.md), [capture qualification](docs/CAPTURE_QUALIFICATION.md), [storage operations](docs/STORAGE.md) and [validation evidence](docs/TESTING.md#current-m3-evidence). The [roadmap](docs/ROADMAP.md) tracks completion gates. The existing [MIT license](LICENSE) is preserved.
 
-Download the plugin JAR, `SHA256SUMS` and `VALIDATION.md` from the [first alpha release](https://github.com/D3V-X3N0/Chronicle/releases/tag/v0.1.0-alpha.1). Read its [installation notes and limitations](docs/releases/v0.1.0-alpha.1.md) before evaluation. The stable release still requires the M3/M5/M6 gates.
+Download the plugin JAR, `SHA256SUMS` and `VALIDATION.md` from the [first alpha release](https://github.com/D3V-X3N0/Chronicle/releases/tag/v0.1.0-alpha.1). Read its [installation notes and limitations](docs/releases/v0.1.0-alpha.1.md) before evaluation. The stable release still requires the M5/M6 gates.
 
 ## Direction
 
-The stone/air capture, SQLite, investigation and narrow inert-block recovery paths exist. See the [recovery guide](docs/RECOVERY.md) and [M3 progress](docs/M3_PLAN.md). Expanded event families remain planned.
+The stone/air capture, SQLite, investigation and narrow inert-block recovery paths exist. See the [recovery guide](docs/RECOVERY.md) and [M3 evidence](docs/M3_PLAN.md). Expanded event families remain planned.
 
 Chronicle prioritises correctness and data integrity, rollback safety, performance, usability, and maintainability, in that order.
 

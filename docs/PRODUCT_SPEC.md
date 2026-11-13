@@ -1,6 +1,6 @@
 # Product specification
 
-Status: 13 November 2026. M1/M2 implement qualified stone/air capture, SQLite storage, investigation and permissions. M3 implements narrow inert-block recovery and is undergoing final qualification. Implemented recovery commands/bounds are defined by [RECOVERY.md](RECOVERY.md); expanded capture, retention and broader defaults remain proposals. The published first alpha remains M1/M2 only.
+Status: 13 November 2026. M1/M2 implement qualified stone/air capture, SQLite storage, investigation and permissions. M3 qualifies narrow inert-block recovery on the pinned runtime. Implemented recovery commands/bounds are defined by [RECOVERY.md](RECOVERY.md); expanded capture, retention and broader defaults remain proposals. The published first alpha remains M1/M2 only.
 
 ## Users and outcomes
 
