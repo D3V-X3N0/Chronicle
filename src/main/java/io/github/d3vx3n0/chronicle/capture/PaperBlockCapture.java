@@ -18,6 +18,8 @@ public final class PaperBlockCapture implements Listener {
     private final BlockReconciler reconciler;
     private final int dataVersion;
     private boolean stopped;
+    private java.util.function.Consumer<BlockReconciler.Position> revisions = p -> {};
+    public void revisions(java.util.function.Consumer<BlockReconciler.Position> listener) { checkThread(); revisions = listener; }
 
     public PaperBlockCapture(HistoryWriter writer, int capacity, int dataVersion) {
         this.writer = writer; this.dataVersion = dataVersion;
@@ -38,6 +40,7 @@ public final class PaperBlockCapture implements Listener {
     }
     private void observe(Block block, Player actor, String action, String before, String proposed, boolean cancelled, boolean build, boolean multi) {
         if (stopped) return;
+        revisions.accept(new BlockReconciler.Position(block.getWorld().getUID(), block.getX(), block.getY(), block.getZ()));
         if (writer.status().state() != HistoryWriter.State.READY) { writer.note(Coverage.STORAGE_FAILURE, 0); return; }
         reconciler.observe(new BlockReconciler.Observation(new BlockReconciler.Position(block.getWorld().getUID(), block.getX(), block.getY(), block.getZ()),
                 block.getWorld().getName(), actor.getUniqueId(), actor.getName(), action, before, proposed,
@@ -54,5 +57,9 @@ public final class PaperBlockCapture implements Listener {
     public void stop() { checkThread(); stopped = true; reconciler.abandon(); }
     public int pending() { return reconciler.pending(); }
     public long observedSequence() { return reconciler.observedSequence(); }
+    public long reserveSynthetic() { checkThread(); return reconciler.reserveSynthetic(); }
+    public void finishSynthetic(long sequence, io.github.d3vx3n0.chronicle.model.CaptureGroup group) {
+        checkThread(); reconciler.finishSynthetic(sequence, group);
+    }
     private static void checkThread() { if (!Bukkit.isPrimaryThread()) throw new IllegalStateException("Capture requires the Paper server thread"); }
 }

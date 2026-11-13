@@ -1,6 +1,6 @@
 # Contributing to Chronicle
 
-Chronicle has qualified stone/air player logging, SQLite history, bounded investigation and automated unit, database, crash and real-client harnesses. Recovery is not implemented. Useful contributions include reviewing capture/query limits, improving failure coverage and completing focused tasks from the [roadmap](docs/ROADMAP.md).
+Chronicle has qualified stone/air player logging, SQLite history, bounded investigation and a narrow inert-block recovery implementation undergoing M3 qualification. Automated unit, database, crash and real-client harnesses exercise these contracts. Useful contributions include reviewing [recovery limits](docs/RECOVERY.md), improving failure coverage and completing focused tasks from the [roadmap](docs/ROADMAP.md).
 
 ## Before starting
 

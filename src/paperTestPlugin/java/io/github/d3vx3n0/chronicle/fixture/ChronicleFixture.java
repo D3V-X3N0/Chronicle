@@ -50,6 +50,9 @@ public final class ChronicleFixture extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onServerLoaded(ServerLoadEvent event) {
+        if (event.getType() == ServerLoadEvent.LoadType.STARTUP && Boolean.getBoolean("chronicle.fixture.recovery")) {
+            getServer().getScheduler().runTask(this, () -> new RecoveryFixture(this).start());
+        }
         if (event.getType() == ServerLoadEvent.LoadType.STARTUP && Boolean.getBoolean("chronicle.fixture.autorun")) {
             getServer().getScheduler().runTask(this, this::runSyntheticCases);
         }
@@ -192,7 +195,7 @@ public final class ChronicleFixture extends JavaPlugin implements Listener {
         var messages = new ArrayList<String>();
         CommandSender allowed = sender(messages, true);
         require(command.execute(allowed, "chronicle", new String[] {"status"}), "status command handled");
-        require(messages.stream().anyMatch(message -> message.contains("NOT IMPLEMENTED")), "honest implementation status");
+        require(messages.stream().anyMatch(message -> message.contains("inert loaded targets")), "honest implementation status");
         messages.clear();
         command.execute(sender(messages, false), "chronicle", new String[] {"status"});
         require(messages.stream().noneMatch(message -> message.contains("Runtime:")), "unauthorised runtime information hidden");

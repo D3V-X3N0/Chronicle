@@ -70,4 +70,21 @@ class BlockReconcilerTest {
         place(0); reconciler.sample(10, position -> { throw new AssertionError("Callback tick is not completion evidence"); });
         assertEquals(1, reconciler.pending()); assertTrue(history.isEmpty());
     }
+    @Test void reservedRecoverySlotPreservesUnrelatedNestedCaptureAndCannotBeAbandonedByMultiPlace() {
+        long reserved = reconciler.reserveSynthetic();
+        place(1); reconciler.sample(11, p -> "minecraft:stone"); assertTrue(history.isEmpty());
+        UUID operation = new UUID(0, 3);
+        var audit = new io.github.d3vx3n0.chronicle.model.BlockChange(new UUID(0, 1), "world", 0, 80, -1, operation, "Chronicle", "BREAK",
+                "minecraft:stone", "minecraft:air", "RECOVERY", 5023);
+        reconciler.finishSynthetic(reserved, new CaptureGroup(reserved, 120, 10, List.of(audit),
+                new io.github.d3vx3n0.chronicle.recovery.RecoveryOutcome(operation, 0, audit.before(), audit.after())));
+        reconciler.sample(11, p -> "minecraft:stone");
+        assertEquals(List.of(1L, 2L), history.stream().map(CaptureGroup::sequence).toList());
+        assertEquals("Test", history.getLast().changes().getFirst().actorName());
+        reserved = reconciler.reserveSynthetic();
+        reconciler.observe(observation(0, "PLACE", "minecraft:air", "minecraft:stone"), false, true, true);
+        assertEquals(1, reconciler.pending());
+        reconciler.finishSynthetic(reserved, null); assertEquals(0, reconciler.pending());
+        assertEquals(List.of(Coverage.UNSUPPORTED), gaps);
+    }
 }

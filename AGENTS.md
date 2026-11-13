@@ -4,9 +4,9 @@ These instructions apply throughout the repository. Keep shared agent guidance h
 
 ## Project and current phase
 
-Chronicle is a planned Minecraft Paper activity logging and recovery plugin. Priorities, in order: correctness and data integrity, rollback safety, performance, usability, maintainability.
+Chronicle is a Minecraft Paper activity logging and recovery plugin under development. Priorities, in order: correctness and data integrity, rollback safety, performance, usability, maintainability.
 
-M1 includes qualified direct-player stone/air capture, bounded ordered reconciliation, SQLite lifecycle/schema, atomic idempotent writing and coverage/status diagnostics. Completed M2 adds schema-2 identity aliases, bounded asynchronous investigation, protected inspection, stable cursors and presentation-only reload. Disposable packet/restart tests and synthetic mixed-load measurements cover these contracts; see `docs/INVESTIGATION.md`, `docs/M2_MEASUREMENTS.md` and current test evidence. Recovery is not implemented. The owner-authorised first release is the evaluation prerelease `v0.1.0-alpha.1`; stable M3/M5/M6 gates remain unmet. See `docs/releases/v0.1.0-alpha.1.md` for its scope and evidence. Inspect the checkout and evidence before relying on this status; update it as implementation changes.
+M1 includes qualified direct-player stone/air capture, bounded ordered reconciliation, SQLite lifecycle/schema, atomic idempotent writing and coverage/status diagnostics. Completed M2 adds identity aliases, bounded asynchronous investigation, protected inspection, stable cursors and presentation-only reload. M3 implementation adds schema-3 journals, frozen recovery previews, budgeted inert stone/air application, verified restore and restart review; final qualification is in progress. See `docs/RECOVERY.md`, `docs/M3_PLAN.md` and current test evidence. The published evaluation prerelease `v0.1.0-alpha.1` contains only M1/M2; M5/M6 gates remain unmet and no new release is authorised. Inspect the checkout and evidence before relying on this status; update it as implementation changes.
 
 - For documentation tasks, keep changes to documentation; do not bootstrap the plugin or install dependencies.
 - When the user requests implementation, work on the requested scope using the roadmap's dependencies and acceptance criteria. The planning status is not a permanent prohibition on implementation.
@@ -25,6 +25,7 @@ Start with [README.md](README.md), inspect Git status, and read the documents re
 | [DEVELOPMENT.md](docs/DEVELOPMENT.md) | Environment, build tasks, package boundaries and engineering conventions |
 | [TESTING.md](docs/TESTING.md) | Test layers, failure scenarios, independent correctness checks and release gates |
 | [INVESTIGATION.md](docs/INVESTIGATION.md) | Implemented query, permission, inspection and reload contracts |
+| [RECOVERY.md](docs/RECOVERY.md) | Implemented recovery scope, commands, journals, restart review and limits |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution scope, review expectations and licensing |
 
 Treat design documents as plans until implementation and tests establish the behaviour. Resolve inconsistencies explicitly and update the affected documents together; do not silently broaden scope.
@@ -59,7 +60,7 @@ For documentation changes:
 - Verify local Markdown links/anchors, examples and status claims. Keep UTF-8 text, final newlines and consistent formatting.
 - Report documentation checks as such; do not substitute them for code tests.
 
-For code changes, run `.\gradlew.bat clean build` on Windows or `bash ./gradlew clean build` on Linux/macOS with JDK 25. This runs JUnit/packaging checks and compiles the separate fixture/harness. `integrationTest` runs file-backed SQLite, packaged native-loading and subprocess crash tests as part of `build`. `paperIntegrationTest` and `paperPacketTest` start disposable Paper servers only with explicit EULA acceptance via `-PacceptMinecraftEula=true`; preserve that opt-in. Synthetic dispatch fixtures are not real-player capture qualification; `paperPacketTest` uses actual loopback player packets and checks durable history after restart. See `docs/CAPTURE_QUALIFICATION.md` and `docs/STORAGE.md`. Run relevant checks, add meaningful regression tests for fixes, and report unavailable checks. Use independent expected states for future rollback tests.
+For code changes, run `.\gradlew.bat clean build` on Windows or `bash ./gradlew clean build` on Linux/macOS with JDK 25. This runs JUnit/packaging checks and compiles the separate fixture/harness. `integrationTest` runs file-backed SQLite, packaged native-loading and subprocess crash tests as part of `build`. `paperIntegrationTest`, `paperPacketTest` and `paperRecoveryTest` start disposable Paper servers only with explicit EULA acceptance via `-PacceptMinecraftEula=true`; preserve that opt-in. Synthetic dispatch fixtures are not real-player capture qualification; `paperPacketTest` uses actual loopback player packets and checks durable history after restart. See `docs/CAPTURE_QUALIFICATION.md` and `docs/STORAGE.md`. Run relevant checks, add meaningful regression tests for fixes, and report unavailable checks. Use independent expected states for future rollback tests.
 
 Use disposable worlds/databases for runtime and failure tests. Never test destructive recovery against production data or include secrets, private player data, downloaded servers, generated binaries or local databases in changes.
 

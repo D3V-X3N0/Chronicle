@@ -21,7 +21,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
@@ -43,7 +43,7 @@ jobs:
       - name: Run opt-in Paper smoke tests
         if: github.event_name == 'workflow_dispatch' && inputs.accept_minecraft_eula
         shell: bash
-        run: bash ./gradlew paperIntegrationTest paperPacketTest -PacceptMinecraftEula=true --no-daemon --console=plain
+        run: bash ./gradlew paperIntegrationTest paperPacketTest paperRecoveryTest -PacceptMinecraftEula=true --no-daemon --console=plain
       - name: Retain build artifacts and test evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -56,4 +56,4 @@ jobs:
             build/reports/tests/**
             build/test-results/**/*.xml
             build/paper-tests/*/console.log
-            build/paper-tests/*/restart.log
+            build/paper-tests/*/restart*.log

@@ -21,6 +21,7 @@ public final class ChroniclePlugin extends JavaPlugin {
     private ChronicleConfig settings;
     private InvestigationController investigation;
     private ReloadController reload;
+    private io.github.d3vx3n0.chronicle.recovery.RecoveryController recovery;
     @Override
     public void onEnable() {
         try {
@@ -47,19 +48,23 @@ public final class ChroniclePlugin extends JavaPlugin {
         String runtime = getServer().getVersion() + " / Java " + Runtime.version();
         writer = new HistoryWriter(limits, () -> new SqliteStore(database, limits.busyMillis()), runtime, getLogger()::warning);
         capture = new PaperBlockCapture(writer, limits.reconciliationRecords(), dataVersion());
+        recovery = new io.github.d3vx3n0.chronicle.recovery.RecoveryController(writer, capture);
         var queries = new QueryService(database, getLogger()::warning);
         investigation = new InvestigationController(queries, getServer(), () -> settings, writer::status, capture::pending);
         reload = new ReloadController(getDataFolder().toPath().resolve("config.yml"), () -> settings, value -> settings = value);
         var executor = new ChronicleCommand(getPluginMeta().getVersion(), () -> settings, getServer(), writer::status,
                 capture::pending, capture::observedSequence, investigation, reload, queries);
+        executor.recovery(recovery);
         var command = Objects.requireNonNull(getCommand("chronicle"), "Missing chronicle command in plugin.yml");
         command.setExecutor(executor);
         command.setTabCompleter(executor);
         getServer().getPluginManager().registerEvents(capture, this);
         getServer().getPluginManager().registerEvents(investigation, this);
+        getServer().getPluginManager().registerEvents(recovery, this);
         getServer().getScheduler().runTaskTimer(this, capture::tick, 1, 1);
         getServer().getScheduler().runTaskTimer(this, () -> { investigation.tick(); reload.tick(); }, 1, 1);
-        getLogger().warning("Chronicle starting SQLite asynchronously. Qualified capture: stone/air only; investigation available when READY; recovery NOT IMPLEMENTED.");
+        getServer().getScheduler().runTaskTimer(this, recovery::tick, 1, 1);
+        getLogger().warning("Chronicle starting SQLite asynchronously. Qualified capture/recovery: inert stone/air only; wait for READY.");
     }
 
     @SuppressWarnings("deprecation") // Pinned Paper exposes data version only through this public legacy accessor.
@@ -67,6 +72,7 @@ public final class ChroniclePlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (recovery != null) recovery.close();
         if (reload != null) reload.close();
         if (investigation != null) investigation.close();
         if (capture != null) capture.stop();

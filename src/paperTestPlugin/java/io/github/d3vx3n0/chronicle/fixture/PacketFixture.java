@@ -28,7 +28,62 @@ final class PacketFixture implements Listener {
     PacketFixture(JavaPlugin plugin) { this.plugin = plugin; }
 
     boolean command(CommandSender sender, String[] args) {
+        if (sender instanceof ConsoleCommandSender && args.length >= 3 && args[0].equals("recovery-player")) {
+            var player = Objects.requireNonNull(Bukkit.getPlayerExact("ChronicleTest"));
+            if (permissions == null) permissions = player.addAttachment(plugin);
+            permissions.setPermission("chronicle.rollback", !args[1].equals("denied"));
+            permissions.setPermission("chronicle.restore", !args[1].equals("denied"));
+            Objects.requireNonNull(Bukkit.getPluginCommand("chronicle")).execute(player, "chronicle", java.util.Arrays.copyOfRange(args, 2, args.length));
+            if (args[1].equals("revoke")) { permissions.setPermission("chronicle.rollback", false); permissions.setPermission("chronicle.restore", false); }
+            plugin.getLogger().info("RECOVERY_PLAYER " + args[1]); return true;
+        }
         if (!(sender instanceof ConsoleCommandSender) || args.length != 2) return false;
+        if (args[0].equals("recovery-pause-confirm")) {
+            var command = Objects.requireNonNull(Bukkit.getPluginCommand("chronicle"));
+            command.execute(sender, "chronicle", new String[] {"rollback", "confirm", args[1]});
+            command.execute(sender, "chronicle", new String[] {"rollback", "pause"});
+            plugin.getLogger().info("RECOVERY_PAUSE_REQUESTED"); return true;
+        }
+        if (args[0].equals("recovery-diverge")) {
+            Objects.requireNonNull(Bukkit.getPlayerExact("ChronicleTest")).getWorld().getBlockAt(0, 80, 0).setType(Material.DIRT, false);
+            plugin.getLogger().info("RECOVERY_DIVERGED dirt"); return true;
+        }
+        if (args[0].equals("recovery-crash")) {
+            try {
+                var chronicle = Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("Chronicle"));
+                var field = chronicle.getClass().getDeclaredField("recovery"); field.setAccessible(true);
+                var recovery = field.get(chronicle);
+                var probe = recovery.getClass().getDeclaredField("boundaryProbe"); probe.setAccessible(true);
+                String requested = args[1];
+                java.util.function.Consumer<String> stop = boundary -> {
+                    if (requested.equals("revoke-intent") && boundary.equals("after-intent")) {
+                        permissions.setPermission("chronicle.rollback", false); permissions.setPermission("chronicle.restore", false);
+                        plugin.getLogger().info("RECOVERY_PERMISSION_REVOKED after-intent"); return;
+                    }
+                    boolean save = requested.equals("after-save") && boundary.equals("after-outcome");
+                    boolean clean = requested.equals("clean-disable") && boundary.equals("after-summary");
+                    if (!requested.equals(boundary) && !save && !clean) return;
+                    if (save) Bukkit.getWorlds().getFirst().save();
+                    if (clean) Bukkit.getPluginManager().disablePlugin(chronicle);
+                    plugin.getLogger().info("RECOVERY_CRASH_BOUNDARY " + requested);
+                    // Disposable fixture only. The external harness forcibly kills this child JVM.
+                    try { new java.util.concurrent.CountDownLatch(1).await(); }
+                    catch (InterruptedException error) { Thread.currentThread().interrupt(); }
+                };
+                probe.set(recovery, stop);
+                plugin.getLogger().info("RECOVERY_CRASH_ARMED " + requested); return true;
+            } catch (ReflectiveOperationException error) { throw new IllegalStateException(error); }
+        }
+        if (args[0].equals("recovery-world")) {
+            var world = Objects.requireNonNull(Bukkit.getPlayerExact("ChronicleTest")).getWorld();
+            for (int x = -2; x <= 4; x++) for (int z = -2; z <= 2; z++) for (int y = 79; y <= 83; y++) {
+                Material target = switch (args[1]) { case "stone" -> Material.STONE; case "dirt" -> Material.DIRT; default -> Material.AIR; };
+                Material expected = y == 79 ? Material.STONE : x == 0 && y == 80 && z == 0 ? target : Material.AIR;
+                if (world.getBlockAt(x, y, z).getType() != expected) throw new AssertionError("Reference world mismatch at " + x + "," + y + "," + z);
+            }
+            if (!world.getEntitiesByClasses(org.bukkit.entity.Item.class, org.bukkit.entity.ExperienceOrb.class).isEmpty()) throw new AssertionError("Unexpected drops/XP");
+            plugin.getLogger().info("RECOVERY_WORLD " + args[1]); return true;
+        }
         if (args[0].equals("fence")) {
             Objects.requireNonNull(Bukkit.getPlayerExact("ChronicleTest")).sendMessage(net.kyori.adventure.text.Component.text("Lookup fence " + args[1]));
             return true;

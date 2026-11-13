@@ -227,7 +227,7 @@ public final class PaperPacketTest {
         }
         throw new AssertionError("queries did not drain");
     }
-    private static String response(Process process, Path output, String command, String marker) throws Exception {
+    static String response(Process process, Path output, String command, String marker) throws Exception {
         int start = PaperSmokeTest.readConsole(output).length(); command(process, command);
         long deadline = System.nanoTime() + Duration.ofSeconds(15).toNanos();
         while (process.isAlive() && System.nanoTime() < deadline) {
@@ -237,7 +237,7 @@ public final class PaperPacketTest {
         }
         throw new AssertionError("Missing response " + marker + " to " + command + "; inspect " + output);
     }
-    private static void awaitClient(PacketClient client, String marker) throws Exception {
+    static void awaitClient(PacketClient client, String marker) throws Exception {
         long deadline = System.nanoTime() + Duration.ofSeconds(10).toNanos();
         while (System.nanoTime() < deadline) { client.check(); if (client.received(marker)) return; Thread.sleep(10); }
         throw new AssertionError("Client did not receive " + marker + ": " + client.messageDiagnostics());
@@ -272,10 +272,10 @@ public final class PaperPacketTest {
         }
         System.out.println("PASS exact durable history after " + sessions + " server session(s)");
     }
-    private static void command(Process process, String command) throws Exception {
+    static void command(Process process, String command) throws Exception {
         process.outputWriter(StandardCharsets.UTF_8).append(command).append('\n').flush();
     }
-    private static void await(Path log, Process process, String marker, int seconds) throws Exception {
+    static void await(Path log, Process process, String marker, int seconds) throws Exception {
         long deadline = System.nanoTime() + Duration.ofSeconds(seconds).toNanos();
         while (process.isAlive() && System.nanoTime() < deadline) {
             if (PaperSmokeTest.readConsole(log).contains(marker)) return;

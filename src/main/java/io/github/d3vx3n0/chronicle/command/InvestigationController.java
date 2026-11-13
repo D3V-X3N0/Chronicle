@@ -159,7 +159,8 @@ public final class InvestigationController implements Listener, AutoCloseable {
             message(request.sender, "  " + row.world() + " @ " + row.x() + "," + row.y() + "," + row.z()
                     + " " + plain(row.before()) + " -> " + plain(row.after()) + "; capture=" + row.session() + "/" + row.sequence() + "/" + row.member()
                     + "; " + row.evidence() + "; codec=" + row.codec() + "/data=" + row.dataVersion()
-                    + (row.understoodSnapshot() ? "; complete qualified snapshot" : "; UNKNOWN/UNSUPPORTED snapshot") + "; recovery unavailable; operation=none");
+                    + (row.understoodSnapshot() ? "; complete qualified snapshot" : "; UNKNOWN/UNSUPPORTED snapshot")
+                    + "; recovery requires a fresh preview; operation=" + (row.operation() == null ? "none" : row.operation() + "/" + row.operationStep()));
         }
         try {
             var cursor = cursors.create(request.owner, request.permission, page, request.limit, request.expires);

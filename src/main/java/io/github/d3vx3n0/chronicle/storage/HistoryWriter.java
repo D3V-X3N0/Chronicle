@@ -14,6 +14,29 @@ import java.util.function.Consumer;
  * Pending accounting includes the in-flight transaction until acknowledgement.
  */
 public final class HistoryWriter {
+    @FunctionalInterface public interface RecoveryWork<T> { T run(io.github.d3vx3n0.chronicle.recovery.RecoveryRepository repository) throws SQLException; }
+    public static final class Control<T> {
+        private final RecoveryWork<T> work;
+        private final java.util.concurrent.CompletableFuture<T> result = new java.util.concurrent.CompletableFuture<>();
+        private boolean started;
+        private Control(RecoveryWork<T> work) { this.work = work; }
+        public boolean done() { return result.isDone(); }
+        public T result() { if (!done()) throw new IllegalStateException("Never wait on recovery I/O"); return result.getNow(null); }
+        private void execute(HistoryStore store) {
+            try { result.complete(store.recoveryWork(work)); }
+            catch (Exception failure) { result.completeExceptionally(failure); }
+        }
+    }
+    private Control<?> control;
+    /** One retained control request, including its undelivered result. Capture history drains first. */
+    public synchronized <T> Control<T> control(RecoveryWork<T> work) {
+        if (state != State.READY || stopping || control != null) throw new IllegalArgumentException("Recovery writer busy/unavailable");
+        var request = new Control<T>(work); control = request; notifyAll(); return request;
+    }
+    public synchronized void release(Control<?> request) {
+        if (control != request || !request.done()) throw new IllegalStateException("Control not completed");
+        control = null; notifyAll();
+    }
     public enum State { STARTING, READY, FAILED, STOPPING, CLOSED, TIMED_OUT }
     public record Status(State state, long session, String engine, long accepted, long committed, long committedSequence,
             long committedId, int pendingRecords, long pendingBytes, long oldestMillis, long rejected,
@@ -118,13 +141,22 @@ public final class HistoryWriter {
             synchronized (this) { if (!stopping) state = State.READY; }
             int announcedReasons = 0;
             while (true) {
+                Control<?> ready;
+                synchronized (this) {
+                    ready = control != null && !control.started && queue.isEmpty() && incidentRevision == persistedIncidentRevision ? control : null;
+                    if (ready != null) ready.started = true;
+                }
+                if (ready != null) { ready.execute(store); continue; }
                 List<CaptureGroup> batch = new ArrayList<>();
                 List<Incident> control;
                 long revision;
                 boolean finish;
                 synchronized (this) {
                     if (expired()) break;
-                    if (queue.isEmpty() && incidentRevision == persistedIncidentRevision && !stopping) wait(settings.flushMillis());
+                    if (queue.isEmpty() && incidentRevision == persistedIncidentRevision && !stopping) {
+                        wait(settings.flushMillis());
+                        if (this.control != null && !this.control.started) continue;
+                    }
                     if (expired()) break;
                     int records = 0; long bytes = 0;
                     while (!queue.isEmpty()) {

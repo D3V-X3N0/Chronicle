@@ -13,5 +13,7 @@ public interface HistoryStore extends AutoCloseable {
     long earliestUncleanStart() throws SQLException;
     long startSession(long startedAt, String runtime) throws SQLException;
     long write(List<CaptureGroup> groups, List<Incident> incidents, boolean clean, long stoppedAt) throws SQLException;
+    default io.github.d3vx3n0.chronicle.recovery.RecoveryRepository recovery() { throw new UnsupportedOperationException("Recovery unavailable"); }
+    default <T> T recoveryWork(HistoryWriter.RecoveryWork<T> work) throws SQLException { return work.run(recovery()); }
     @Override void close() throws SQLException, IOException;
 }

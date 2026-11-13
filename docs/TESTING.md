@@ -1,6 +1,23 @@
 # Testing and validation
 
-Status: M1 and M2 unit, database, crash, packaged-native, investigation, packet/restart and initial synthetic load checks are implemented, 11 November 2026. Broader recovery/operational performance suites below remain planned. Actual commands and runtime setup are in [DEVELOPMENT.md](DEVELOPMENT.md).
+Status: 13 November 2026. M1/M2 and narrow M3 recovery suites are implemented. Final M3 qualification is in progress; broader operational performance, retention and expanded state suites remain planned. Actual commands and runtime setup are in [DEVELOPMENT.md](DEVELOPMENT.md).
+
+## Current M3 evidence
+
+[M3_PLAN.md](M3_PLAN.md) records local evidence and final qualification progress.
+[RECOVERY.md](RECOVERY.md) defines the implemented boundaries. The build adds
+forward schema-3 migration/failure tests, an independent seeded planning oracle,
+bounded selection/control checks, effective rollback/restore claims and subprocess
+kills immediately before/after intent and outcome commits.
+
+`paperRecoveryTest -PacceptMinecraftEula=true` adds independent real-world state,
+neighbour and drop/XP checks; actual TCP-player preview/confirmation/restoration;
+permission revocation; pause/continuation; identical-state intervening edits;
+retained-effect checks; eight actual server-kill boundaries; and independently
+restored stopped-server world/database backups. A clean plugin shutdown before world save
+does not bypass retained-effect revalidation. This is process-crash evidence, not
+hardware power-loss evidence. Final clean-build/runtime and CI results will be
+recorded before marking M3 complete.
 
 ## Alpha release evidence
 

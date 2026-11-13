@@ -1,6 +1,6 @@
 # Architecture
 
-Status: M1 capture/storage and M2 investigation are implemented, 11 November 2026. Qualified stone/air adapters, bounded reconciliation/writing, schema 2, bounded readers, stable cursors, inspection and safe presentation reload exist. Broader codecs and recovery designs below remain proposals. [Investigation](INVESTIGATION.md), [capture qualification](CAPTURE_QUALIFICATION.md), [storage operations](STORAGE.md) and [test evidence](TESTING.md#current-m2-evidence) define actual behaviour in the [first evaluation alpha](releases/v0.1.0-alpha.1.md). Stable-release gates remain unmet.
+Status: 13 November 2026. M1/M2 are implemented; M3 adds schema-3 journals, frozen plans and conservative inert stone/air recovery, with final qualification in progress. [RECOVERY.md](RECOVERY.md) defines actual recovery behaviour and development bounds. Broader codecs, performance tuning and retention remain proposals. The [first evaluation alpha](releases/v0.1.0-alpha.1.md) remains M1/M2 only. Stable-release gates remain unmet.
 
 ## Repository evidence and decisions
 
@@ -105,7 +105,7 @@ Maintain a bounded ordered observation stream per inventory identity, reconcile 
 
 ## Persistence
 
-The current implementation uses Xerial 3.54.1.0 / SQLite 3.54.1, one connection-owning writer, two bounded read-only workers, and transactional schema 2. It isolates the bundled driver because Paper supplies an older SQLite. See [STORAGE.md](STORAGE.md) for the implemented schema, failure policy and shutdown limits. Query workers and frozen committed-ID lookup boundaries exist. Capture barriers for mutations, backup tooling, pruning and operation journals remain future work.
+The current implementation uses Xerial 3.54.1.0 / SQLite 3.54.1, one connection-owning writer, two bounded read-only workers, and transactional schema 3. It isolates the bundled driver because Paper supplies an older SQLite. See [STORAGE.md](STORAGE.md) for the implemented schema, failure policy and shutdown limits. Query workers and frozen committed-ID lookup boundaries exist. M3 adds capture barriers, frozen plans, operation journals and one serialized recovery control slot on the writer. Bounded recovery SQL runs there to keep claims and history ordered; expensive planning can delay commits, so M5 still needs mixed-load measurements. Backup tooling and pruning remain future work.
 
 ### Admission, commit, and overload
 
@@ -158,7 +158,7 @@ Initial candidate indexes on `changes` (proposals, evaluated against M2's commit
 - `(actor_id, occurred_at, id)` for player history.
 - `(occurred_at, id)` for time queries and bounded retention.
 
-Unique capture keys and foreign-key lookup paths also need indexes. Evaluate an action/time or world/time index only against real query plans; each additional index increases write/storage costs. Radius queries select candidate chunks/bounding boxes and apply the exact squared-distance predicate, including edge and negative coordinates. M2 uses descending history-ID keyset pagination with a fixed committed ID ceiling; this replaces the earlier timestamp/ID display-order proposal to retain ingestion order under equal/backwards clocks. Wall time is a filter/display dimension. Recovery remains unimplemented and must use capture order. Record query plans using [SQLite EXPLAIN QUERY PLAN](https://www.sqlite.org/eqp.html) during development; do not make its unstable text a production parser contract.
+Unique capture keys and foreign-key lookup paths also need indexes. Evaluate an action/time or world/time index only against real query plans; each additional index increases write/storage costs. Radius queries select candidate chunks/bounding boxes and apply the exact squared-distance predicate, including edge and negative coordinates. M2 uses descending history-ID keyset pagination with a fixed committed ID ceiling; this replaces the earlier timestamp/ID display-order proposal to retain ingestion order under equal/backwards clocks. Wall time is a filter/display dimension. M3 recovery uses capture order, independently of wall-clock filters. Record query plans using [SQLite EXPLAIN QUERY PLAN](https://www.sqlite.org/eqp.html) during development; do not make its unstable text a production parser contract.
 
 M2 retains the exact-position index and adds `(actor_uuid,id)` and `(world_uuid,id)` for keyset access. [Measurements](M2_MEASUREMENTS.md) compare these with time-oriented candidates while writes continue. No production plan parser or universal index superiority is claimed. Reader budgets, cursor ownership, conservative coverage warnings and interpretation checks are specified in [INVESTIGATION.md](INVESTIGATION.md).
 
@@ -184,15 +184,15 @@ Use reverse capture order across selected changes, plus explicit dependencies wi
 
 ### Durable execution protocol
 
-Proposed operation states: `PREVIEW_READY -> PREPARED -> APPLYING -> COMPLETED` or `COMPLETED_WITH_SKIPS`. Execution can enter `PAUSED`, `NEEDS_RECONCILIATION`, or `FAILED`; an expired preview is `EXPIRED`. Pause means no further world changes, not automatic reversal. Even a failed operation retains the exact steps already applied.
+M3 operation states include `PREVIEW_READY -> PREPARED -> APPLYING -> COMPLETED` or `COMPLETED_WITH_SKIPS`. Execution can enter `PAUSED` or `NEEDS_RECONCILIATION`; an expired preview is `EXPIRED`. Step outcomes distinguish applied, skipped, failed, unknown and unattempted work. Pause means no further world changes, not automatic reversal. Even a failed operation retains the exact steps already applied.
 
 1. Persist the immutable plan and bounded step intents through the writer. A step contains its expected and desired canonical state. Nothing mutates until intent commit is acknowledged.
 2. On a scheduled server-thread slice, recheck permissions, storage health, world/chunk availability, target revision, full state and dependencies. Refuse stale/unknown targets; journal the reason.
 3. Apply an eligible step using the qualified codec; capture actual before/after immediately, then perform any codec-required bounded follow-up verification. Mark ambiguous side effects for reconciliation.
 4. Send the outcome to the writer. Commit step status, the link to the original change, and an operation-origin audit change atomically. Do not mark the original row deleted or rewrite its evidence.
-5. Wait asynchronously for the outcome acknowledgement before permitting dependent steps or declaring completion. Use bounded slices/batches of intents and outcomes rather than blocking for a disk sync per block. Queue pressure pauses the executor.
+5. Wait asynchronously for the outcome acknowledgement before permitting dependent steps or declaring completion. M3 serializes one step at a time and never blocks the server thread for a disk sync. Queue pressure pauses the executor; batching is a future measured optimization.
 
-A short-lived, target-specific mutation context identifies synchronous events caused by Chronicle's exact step. Correlate only the expected event/target transition; unrelated nested events remain ordinary capture. Journal the synthetic transition once even if the world API emits no event. Allocate its capture sequence on the server thread and insert it through the same ordered history path as other changes; control/journal messages must not reorder history. Update the plan's expected revisions only for its own verified steps. Never disable all listeners during rollback. Delayed physics outside that exact context must be logged as a derived/unknown change and may invalidate the remaining plan. Reconcile deduplication against observed runtime behaviour in M3.
+A short-lived, target-specific mutation context identifies synchronous events caused by Chronicle's exact step. Correlate only the expected event/target transition; unrelated nested events remain ordinary capture. Journal the synthetic transition once even if the world API emits no event. Allocate its capture sequence on the server thread and insert it through the same ordered history path as other changes; control/journal messages must not reorder history. Update the plan's expected revisions only for its own verified steps. Never disable all listeners during rollback. In M3, uncorrelated physics at watched dependencies invalidates the plan; derived/unknown physics history remains part of future expanded capture. The disposable fixtures qualify the inert codec's synchronous correlation and independent target/neighbour states.
 
 World application must not invoke natural breaking or generate drops/XP. It also cannot reclaim previously mined items or reimburse placement costs. Block recovery therefore does not conserve the server economy; this limitation must be disclosed in preview. Inventory and stored loot-table state recovery remains excluded until a separate item-conservation design is proven.
 
@@ -220,8 +220,8 @@ Track capture duration/allocation, queue count/bytes/oldest age, commit latency 
 
 | Open decision | Recommended direction | Evidence / decision gate |
 | --- | --- | --- |
-| SQLite driver and schema implementation | Implemented: Xerial 3.54.1.0, isolated native loading, checksummed schema 2 and bounded readers | File-backed/native/crash checks in `integrationTest`; Paper runtime checks in both opted-in harnesses |
-| Reliable before/after capture | Qualified stone/air only; explicit uncertainty, no recovery eligibility | [Packet-driven M1 evidence](CAPTURE_QUALIFICATION.md); broader plugin/type matrix remains future work |
+| SQLite driver and schema implementation | Implemented: Xerial 3.54.1.0, isolated native loading, checksummed schema 3 and bounded readers | File-backed/native/crash checks in `integrationTest`; Paper runtime checks in both opted-in harnesses |
+| Reliable before/after capture | Qualified stone/air capture; separate inert application qualification in M3 | [Packet-driven M1 evidence](CAPTURE_QUALIFICATION.md); broader plugin/type matrix remains future work |
 | Block/item codecs and supported state list | Public API, explicit versioned codecs, inspect-only fallback | Round-trip fixtures per type/version before recovery support |
 | M4 transaction fidelity | Stage simple container/hopper cases; retain ambiguity | Pinned API/source inspection and real inventory interleaving fixtures |
 | Numeric limits and retention policy | Use PRODUCT_SPEC development defaults; prune only by explicit policy | M5 workload measurements and operator review |

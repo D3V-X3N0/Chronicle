@@ -6,7 +6,7 @@ The goal is a maintainable, performance-conscious alternative to established too
 
 ## Current status
 
-**The first prerelease, `v0.1.0-alpha.1`, records qualified player stone/air transitions in SQLite, provides read-only inspection and filtered lookup, and reports durability and coverage status. Recovery is not implemented. It is an evaluation alpha for disposable servers, not comprehensive server protection.**
+**The development snapshot adds previewed inert stone/air rollback and restoration, with durable journals and restart review. M3 final qualification is in progress. The published `v0.1.0-alpha.1` remains the M1/M2 logging and investigation alpha and contains no recovery. Use disposable evaluation servers.**
 
 M1 and M2 are complete for the qualified scope: historical name/UUID resolution, exact filters, bounded asynchronous readers, requester-owned pagination, permission-aware commands and presentation-only reload. Unit, file-backed database, subprocess crash and packaged-native tests run in the build. Opt-in disposable Paper tests use actual network players, protection plugins, inspection interactions and exact history/command checks after restart. See the [investigation guide](docs/INVESTIGATION.md), [capture qualification](docs/CAPTURE_QUALIFICATION.md), [storage operations](docs/STORAGE.md) and [validation evidence](docs/TESTING.md#current-m2-evidence). The [roadmap](docs/ROADMAP.md) tracks completion gates. The existing [MIT license](LICENSE) is preserved.
 
@@ -14,7 +14,7 @@ Download the plugin JAR, `SHA256SUMS` and `VALIDATION.md` from the [first alpha 
 
 ## Direction
 
-The stone/air capture, SQLite and investigation paths exist. Expanded event families and recovery below remain planned.
+The stone/air capture, SQLite, investigation and narrow inert-block recovery paths exist. See the [recovery guide](docs/RECOVERY.md) and [M3 progress](docs/M3_PLAN.md). Expanded event families remain planned.
 
 Chronicle prioritises correctness and data integrity, rollback safety, performance, usability, and maintainability, in that order.
 
@@ -29,7 +29,7 @@ The initial stable release scope is deliberately limited to a tested block loggi
 
 ## Intended platform and prerequisites
 
-The build pins **Paper API `26.3.build.248-stable`, Minecraft 26.3, JDK 25 and Gradle 9.9.1**. The smoke harness pins matching Paper server build 248 and its SHA-256. The plugin refuses unqualified runtime builds. Versions were verified against Paper's [artifact repository](https://repo.papermc.io/repository/maven-public/io/papermc/paper/paper-api/maven-metadata.xml) and [downloads service](https://fill.papermc.io/v3/projects/paper/versions/26.3/builds/248) on 11 November 2026. Packet-driven local tests qualify only the transitions described above; recovery is unavailable.
+The build pins **Paper API `26.3.build.248-stable`, Minecraft 26.3, JDK 25 and Gradle 9.9.1**. The harness pins matching Paper server build 248 and its SHA-256. The plugin refuses unqualified runtime builds. Versions were verified against Paper's [artifact repository](https://repo.papermc.io/repository/maven-public/io/papermc/paper/paper-api/maven-metadata.xml) and [downloads service](https://fill.papermc.io/v3/projects/paper/versions/26.3/builds/248) on 11 November 2026. Recovery requires the additional inert-neighbourhood and journal checks in the recovery guide.
 
 Contributors need Git and JDK 25; set `JAVA_HOME` to that JDK. The checked-in Gradle Wrapper downloads its checksum-verified distribution. No globally installed Gradle is needed. Dependency downloads require internet on the first build. Folia, Spigot, older Minecraft versions and other forks are outside the initial support scope.
 
@@ -47,9 +47,9 @@ On Linux/macOS:
 bash ./gradlew clean build
 ```
 
-The alpha plugin is `build/libs/chronicle-0.1.0-alpha.1.jar`. Install only that JAR in a disposable Paper 26.3 build 248 server's `plugins/` directory, restart, and run `chronicle status` from console. SQLite starts on its own worker; capture waits for `READY`. Players need explicit grants for `chronicle.status`, `chronicle.lookup`, `chronicle.inspect` or `chronicle.reload`; all default to false even for operators. See the [investigation workflow](docs/INVESTIGATION.md). Configuration is created at `plugins/Chronicle/config.yml`; invalid configuration disables the plugin and preserves the file. Only runtime-detail display and lookup page size can reload; storage settings require restart. History is stored at `plugins/Chronicle/history.db`; never delete a failed database or its WAL to silence an error.
+The development plugin is `build/libs/chronicle-0.2.0-SNAPSHOT.jar`. Install only that JAR in a disposable Paper 26.3 build 248 server's `plugins/` directory, restart, and run `chronicle status` from console. SQLite starts on its own worker; capture waits for `READY`. Players need explicit grants for `chronicle.status`, `chronicle.lookup`, `chronicle.inspect`, `chronicle.reload`, `chronicle.rollback` or `chronicle.restore`; all default to false even for operators. See the [investigation workflow](docs/INVESTIGATION.md). Configuration is created at `plugins/Chronicle/config.yml`; invalid configuration disables the plugin and preserves the file. Only runtime-detail display and lookup page size can reload; storage settings require restart. History is stored at `plugins/Chronicle/history.db`; never delete a failed database or its WAL to silence an error.
 
-`build/libs/chronicle-0.1.0-alpha.1-paper-test-plugin.jar` is a separate diagnostic fixture. Do not install it on a production server. `build` runs unit/database/crash/native tests and compiles the harness without starting Minecraft. See [development setup](docs/DEVELOPMENT.md) for the opt-in Paper test command, EULA requirement, exact artifacts and fixture limitations.
+`build/libs/chronicle-0.2.0-SNAPSHOT-paper-test-plugin.jar` is a separate diagnostic fixture. Do not install it on a production server. `build` runs unit/database/crash/native tests and compiles the harness without starting Minecraft. See [development setup](docs/DEVELOPMENT.md) for the opt-in Paper test command, EULA requirement, exact artifacts and fixture limitations.
 
 ## Documentation
 

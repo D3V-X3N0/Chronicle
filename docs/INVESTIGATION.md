@@ -10,7 +10,9 @@ Use the pinned build and installation procedure in [DEVELOPMENT.md](DEVELOPMENT.
 Wait for `/chronicle status` to report `READY`. Grant players the specific
 `chronicle.inspect`, `chronicle.lookup`, `chronicle.status` and/or `chronicle.reload`
 permissions they need. All default to false, including for operators. Local console
-is trusted. Inventory, rollback and restore permissions/commands are not implemented.
+is trusted. The published alpha has no recovery. The development snapshot adds
+separate rollback/restore permissions and commands described in [RECOVERY.md](RECOVERY.md).
+Inventory history remains unsupported.
 
 ```text
 /chronicle inspect
@@ -57,7 +59,9 @@ position, before/after data, capture identity, observation evidence, codec/data
 version and interpretation quality. M1/M2 successful rows have explicit
 `PLAYER / PLAYER_ACTION / DIRECT` attribution. Unknown attribution or unsupported
 snapshot versions/payloads are labelled; nothing is substituted with air. All rows
-remain ineligible for recovery, with no operation link.
+retain their original capture eligibility flag. Development snapshot operation rows
+show `SYSTEM / OPERATION / EXACT` attribution and their operation/step link. Lookup
+does not grant recovery eligibility; every mutation needs a fresh recovery preview.
 
 Each first page freezes the maximum committed history ID in its short SQLite read
 transaction. Results use descending history ID (capture/ingestion order), including

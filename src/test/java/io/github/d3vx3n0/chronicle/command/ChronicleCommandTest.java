@@ -20,7 +20,7 @@ class ChronicleCommandTest {
     @Test
     void statusReportsMissingProtectionAndOptionalRuntimeDetails() {
         command(true).onCommand(sender(true), null, "chronicle", new String[] {"status"});
-        assertTrue(messages.stream().anyMatch(text -> text.contains("NOT IMPLEMENTED")));
+        assertTrue(messages.stream().anyMatch(text -> text.contains("inert loaded targets")));
         assertTrue(messages.stream().anyMatch(text -> text.contains("Runtime: Paper")));
     }
 
@@ -28,7 +28,7 @@ class ChronicleCommandTest {
     void configuredRuntimeSuppressionIsRespected() {
         command(false).onCommand(sender(true), null, "chronicle", new String[] {"status"});
         assertFalse(messages.stream().anyMatch(text -> text.contains("Runtime:")));
-        assertTrue(messages.stream().anyMatch(text -> text.contains("NOT IMPLEMENTED")));
+        assertTrue(messages.stream().anyMatch(text -> text.contains("inert loaded targets")));
     }
 
     @Test

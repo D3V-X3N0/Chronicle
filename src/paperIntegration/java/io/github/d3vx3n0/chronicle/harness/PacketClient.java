@@ -73,7 +73,8 @@ final class PacketClient implements AutoCloseable {
                     // not a general chat decoder; only fixed Chronicle markers are used as the oracle.
                     String payload = new String(bytes, StandardCharsets.UTF_8);
                     if (payload.contains("Lookup") || payload.contains("Inspection") || payload.contains("Committed history")
-                            || payload.contains("chronicle.lookup") || payload.contains("UNKNOWN")) {
+                            || payload.contains("chronicle.lookup") || payload.contains("UNKNOWN") || payload.contains("chronicle.rollback")
+                            || payload.contains("chronicle.restore") || payload.contains("Preview ") || payload.contains("Recovery")) {
                         synchronized (messages) { if (messages.size() == 128) messages.removeFirst(); messages.addLast(payload); }
                     }
                     switch (id) {

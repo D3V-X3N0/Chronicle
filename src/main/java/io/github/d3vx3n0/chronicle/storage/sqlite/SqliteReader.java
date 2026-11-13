@@ -105,7 +105,7 @@ public final class SqliteReader implements AutoCloseable {
         var sql = new StringBuilder("""
                 SELECT id,session_id,capture_sequence,member_index,occurred_at,substr(world_uuid,1,64),x,y,z,substr(actor_uuid,1,64),
                 substr(actor_name,1,64),substr(action,1,64),substr(before_data,1,256),substr(after_data,1,256),codec_version,
-                data_version,substr(evidence,1,64),substr(actor_kind,1,32),substr(cause_kind,1,32),substr(attribution_quality,1,32)
+                data_version,substr(evidence,1,64),substr(actor_kind,1,32),substr(cause_kind,1,32),substr(attribution_quality,1,32),substr(operation_id,1,64),operation_step
                 FROM changes WHERE id<=? AND id<? AND occurred_at>=? AND occurred_at<?
                 """);
         var params = new ArrayList<Object>(List.of(boundary, before, filter.from(), filter.to()));
@@ -141,7 +141,7 @@ public final class SqliteReader implements AutoCloseable {
                 while (result.next()) rows.add(new HistoryRow(result.getLong(1), result.getLong(2), result.getLong(3), result.getInt(4),
                         result.getLong(5), result.getString(6), result.getInt(7), result.getInt(8), result.getInt(9), result.getString(10),
                         result.getString(11), result.getString(12), result.getString(13), result.getString(14), result.getInt(15), result.getInt(16),
-                        result.getString(17), result.getString(18), result.getString(19), result.getString(20)));
+                        result.getString(17), result.getString(18), result.getString(19), result.getString(20), result.getString(21), (Integer) result.getObject(22)));
             }
         }
         checkDeadline();

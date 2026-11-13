@@ -1,6 +1,6 @@
 # Product specification
 
-Status: target specification, 11 November 2026. M1 implements qualified stone/air capture, SQLite storage and durability/coverage status. M2 implements bounded investigation, permissions and safe presentation reload. Recovery, expanded capture and retention remain planned. Implemented scope is defined by [INVESTIGATION.md](INVESTIGATION.md), [CAPTURE_QUALIFICATION.md](CAPTURE_QUALIFICATION.md) and [STORAGE.md](STORAGE.md); broader recovery interfaces/defaults below remain proposals.
+Status: 13 November 2026. M1/M2 implement qualified stone/air capture, SQLite storage, investigation and permissions. M3 implements narrow inert-block recovery and is undergoing final qualification. Implemented recovery commands/bounds are defined by [RECOVERY.md](RECOVERY.md); expanded capture, retention and broader defaults remain proposals. The published first alpha remains M1/M2 only.
 
 ## Users and outcomes
 
@@ -51,7 +51,7 @@ Block recovery changes world blocks only. It must not generate drops or experien
 
 ## Proposed administrator workflow
 
-`inspect`, `lookup`, `status` and `reload` are implemented as documented in the [investigation guide](INVESTIGATION.md). The rollback, restore and operation-status examples below remain proposals and are not accepted commands. Grammar usability has been tested through scripted fixtures, not a field administrator study.
+Investigation commands are documented in the [investigation guide](INVESTIGATION.md). The rollback, restore and operation-status examples below are implemented for the narrower [M3 scope](RECOVERY.md). Grammar usability has been tested through scripted fixtures, not a field administrator study.
 
 ```text
 /chronicle inspect

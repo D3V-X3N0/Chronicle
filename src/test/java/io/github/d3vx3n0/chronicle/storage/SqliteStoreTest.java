@@ -46,7 +46,7 @@ class SqliteStoreTest {
             assertEquals(0, store.previousUnclean()); assertEquals(2, store.startSession(789, "test"));
             assertEquals("2", query(db, "SELECT count(*) FROM changes"));
             assertEquals("wal", query(db, "PRAGMA journal_mode"));
-            assertEquals("2", query(db, "PRAGMA user_version"));
+            assertEquals("3", query(db, "PRAGMA user_version"));
             assertEquals("-2|-1|" + WORLD + "|" + ACTOR + "|minecraft:air|minecraft:stone|1|5023|0",
                     query(db, "SELECT chunk_x||'|'||chunk_z||'|'||world_uuid||'|'||actor_uuid||'|'||before_data||'|'||after_data||'|'||codec_version||'|'||data_version||'|'||recovery_eligible FROM changes WHERE id=1"));
         }
@@ -98,7 +98,7 @@ class SqliteStoreTest {
             statement.execute("PRAGMA user_version=1"); // Closing without commit is an interrupted transaction.
         }
         try (var store = new SqliteStore(db, 100)) { assertEquals(1, store.startSession(1, "test")); }
-        assertEquals("2", query(db, "PRAGMA user_version"));
+        assertEquals("3", query(db, "PRAGMA user_version"));
     }
     @Test void unavailableStorageAndWrongThreadFailExplicitly() throws Exception {
         Path db = directory.resolve("folder.db"); Files.createDirectory(db);

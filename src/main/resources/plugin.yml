@@ -2,13 +2,13 @@ name: Chronicle
 version: '${version}'
 main: io.github.d3vx3n0.chronicle.bootstrap.ChroniclePlugin
 api-version: '26.3'
-description: Evaluation alpha with qualified stone/air history and bounded investigation. No recovery.
+description: Qualified stone/air history, investigation and conservative inert-block recovery.
 author: DEV_X3N0
 website: https://github.com/D3V-X3N0/Chronicle
 commands:
   chronicle:
     description: Investigate committed block history and view Chronicle status.
-    usage: /chronicle <inspect|lookup|status|reload>
+    usage: /chronicle <inspect|lookup|status|reload|rollback|restore>
     # The executor checks permissions so trusted console access can bypass the player default=false.
 permissions:
   chronicle.inspect:
@@ -22,4 +22,10 @@ permissions:
     default: false
   chronicle.status:
     description: View Chronicle version and implementation status.
+    default: false
+  chronicle.rollback:
+    description: Preview, confirm and review qualified inert-block rollback.
+    default: false
+  chronicle.restore:
+    description: Preview and confirm restoration of verified rollback steps.
     default: false

@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "io.github.d3vx3n0"
-version = "0.1.0-alpha.1"
+version = "0.2.0-SNAPSHOT"
 val pluginVersion = version.toString()
 
 repositories {
@@ -105,6 +105,7 @@ tasks.register<JavaExec>("historyLoadTest") {
 val paperTestPlugin = sourceSets.create("paperTestPlugin")
 configurations[paperTestPlugin.compileOnlyConfigurationName].extendsFrom(configurations.compileOnly.get())
 dependencies {
+    add(paperTestPlugin.compileOnlyConfigurationName, sourceSets.main.get().output)
     testImplementation(paperTestPlugin.output)
 }
 
@@ -156,4 +157,18 @@ tasks.register<JavaExec>("paperPacketTest") {
 
 tasks.check {
     dependsOn(paperTestPluginJar, paperIntegration.classesTaskName, integrationTest)
+}
+
+tasks.register<JavaExec>("paperRecoveryTest") {
+    group = "verification"
+    description = "Qualify inert recovery in disposable Paper worlds; requires explicit EULA acceptance."
+    dependsOn(tasks.jar, paperTestPluginJar, paperIntegration.classesTaskName)
+    classpath = paperIntegration.runtimeClasspath
+    mainClass.set("io.github.d3vx3n0.chronicle.harness.PaperRecoveryTest")
+    javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(25)) })
+    args(layout.projectDirectory.file("gradle/paper-test.properties").asFile.absolutePath,
+        layout.buildDirectory.dir("paper-tests").get().asFile.absolutePath,
+        tasks.jar.flatMap { it.archiveFile }.get().asFile.absolutePath,
+        paperTestPluginJar.flatMap { it.archiveFile }.get().asFile.absolutePath,
+        providers.gradleProperty("acceptMinecraftEula").orElse("false").get())
 }

@@ -23,6 +23,8 @@ public final class ChronicleCommand implements TabExecutor {
     private final InvestigationController investigation;
     private final ReloadController reload;
     private final io.github.d3vx3n0.chronicle.query.QueryService queries;
+    private io.github.d3vx3n0.chronicle.recovery.RecoveryController recovery;
+    public void recovery(io.github.d3vx3n0.chronicle.recovery.RecoveryController controller) { recovery = controller; }
 
     public ChronicleCommand(String version, ChronicleConfig settings, Server server) {
         this(version, settings, server, () -> null);
@@ -47,6 +49,12 @@ public final class ChronicleCommand implements TabExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (recovery != null && args.length == 2 && args[0].equalsIgnoreCase("status") && args[1].startsWith("operation:")) {
+            recovery.operationStatus(sender, args[1].substring("operation:".length())); return true;
+        }
+        if (args.length > 0 && recovery != null && (args[0].equalsIgnoreCase("rollback") || args[0].equalsIgnoreCase("restore"))) {
+            recovery.command(sender, args[0].toUpperCase(Locale.ROOT), java.util.Arrays.copyOfRange(args, 1, args.length)); return true;
+        }
         if (args.length > 0 && investigation != null) {
             switch (args[0].toLowerCase(Locale.ROOT)) {
                 case "lookup" -> { investigation.lookup(sender, java.util.Arrays.copyOfRange(args, 1, args.length)); return true; }
@@ -66,17 +74,17 @@ public final class ChronicleCommand implements TabExecutor {
             return true;
         }
         if (args.length != 1 || !args[0].equalsIgnoreCase("status")) {
-            sender.sendMessage(Component.text(investigation == null ? "Usage: /chronicle status" : "Usage: /chronicle <inspect|lookup|status|reload>", NamedTextColor.YELLOW));
+            sender.sendMessage(Component.text(investigation == null ? "Usage: /chronicle status" : "Usage: /chronicle <inspect|lookup|status|reload|rollback|restore>", NamedTextColor.YELLOW));
             return true;
         }
         ChronicleConfig settings = configuration.get();
         sender.sendMessage(Component.text("Chronicle " + version + " — development investigation", NamedTextColor.GOLD));
         sender.sendMessage(Component.text(
-                "Qualified capture: stone/air player transitions only. Recovery: NOT IMPLEMENTED.",
+                "Qualified capture: stone/air player transitions only. Recovery: inert loaded targets with preview and confirmation.",
                 NamedTextColor.YELLOW));
         var status = health.get();
         if (status != null) {
-            sender.sendMessage(Component.text("Storage: " + status.state() + "; schema=2; SQLite=" + status.engine() + "; session=" + status.session()));
+            sender.sendMessage(Component.text("Storage: " + status.state() + "; schema=3; SQLite=" + status.engine() + "; session=" + status.session()));
             sender.sendMessage(Component.text("Accepted=" + status.accepted() + "; committed=" + status.committed()
                     + "; capture sequence=" + status.committedSequence() + "; history ID=" + status.committedId()));
             sender.sendMessage(Component.text("Reconciliation pending=" + reconciliationPending.getAsInt()
@@ -91,6 +99,7 @@ public final class ChronicleCommand implements TabExecutor {
         }
         if (queries != null) sender.sendMessage(Component.text("Queries: " + queries.stats() + "; readers=2; waiting<=32; retained<=34; page size="
                 + settings.pageSize() + "; deadline=2s; cursors<=128/120s. Reload: presentation only; storage requires restart."));
+        if (recovery != null) sender.sendMessage(Component.text(recovery.status()));
         if (settings.showRuntimeDetails()) {
             sender.sendMessage(Component.text(
                     "Runtime: " + server.getName() + " / Minecraft " + server.getMinecraftVersion()
@@ -102,12 +111,16 @@ public final class ChronicleCommand implements TabExecutor {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (investigation != null && args.length == 1) {
-            return List.of("inspect", "lookup", "status", "reload").stream()
+            return List.of("inspect", "lookup", "status", "reload", "rollback", "restore").stream()
                     .filter(name -> InvestigationController.allowed(sender, "chronicle." + name))
                     .filter(name -> name.startsWith(args[0].toLowerCase(Locale.ROOT))).toList();
         }
         if (investigation != null && args.length >= 2 && args.length <= 9 && args[0].equalsIgnoreCase("lookup"))
             return investigation.complete(sender, args[args.length - 1]);
+        if (recovery != null && args.length == 2 && (args[0].equals("rollback") || args[0].equals("restore"))
+                && InvestigationController.allowed(sender, "chronicle." + args[0]))
+            return (args[0].equals("rollback") ? List.of("preview", "confirm", "review", "pause", "continue", "compensate") : List.of("preview", "confirm", "review", "pause", "continue"))
+                    .stream().filter(value -> value.startsWith(args[1])).toList();
         if (canViewStatus(sender) && args.length == 1 && "status".startsWith(args[0].toLowerCase(Locale.ROOT))) {
             return List.of("status");
         }

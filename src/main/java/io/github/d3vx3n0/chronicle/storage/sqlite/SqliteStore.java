@@ -93,12 +93,14 @@ public final class SqliteStore implements HistoryStore {
             statement.setLong(1, startedAt); statement.setString(2, runtime); statement.executeUpdate();
         }
         session = Long.parseLong(scalar("SELECT last_insert_rowid()"));
+        recovery().startup();
         return session;
     }
 
-    public static final int SCHEMA_VERSION = 2;
+    public static final int SCHEMA_VERSION = 3;
     private static String migration(int version) throws IOException {
-        String resource = version == 1 ? "001-foundation.sql" : "002-investigation.sql";
+        String resource = switch (version) { case 1 -> "001-foundation.sql"; case 2 -> "002-investigation.sql"; case 3 -> "003-recovery.sql";
+            default -> throw new IOException("Unknown migration"); };
         try (var input = SqliteStore.class.getResourceAsStream("/db/" + resource)) {
             if (input == null) throw new IOException("Missing migration resource");
             return new String(input.readAllBytes(), StandardCharsets.UTF_8).replace("\r\n", "\n");
@@ -182,6 +184,14 @@ public final class SqliteStore implements HistoryStore {
                     insert.setString(p++, change.before()); insert.setString(p++, change.after());
                     insert.setInt(p++, change.dataVersion()); insert.setString(p++, change.evidence()); insert.setBytes(p, payload);
                     insert.executeUpdate();
+                    if (group.outcome() != null) {
+                        var outcome = group.outcome();
+                        try (var audit = connection.prepareStatement("UPDATE changes SET operation_id=?,operation_step=?,actor_kind='SYSTEM',cause_kind='OPERATION',attribution_quality='EXACT' WHERE session_id=? AND capture_sequence=? AND member_index=0")) {
+                            audit.setString(1, outcome.operation().toString()); audit.setInt(2, outcome.step());
+                            audit.setLong(3, session); audit.setLong(4, group.sequence()); audit.executeUpdate();
+                        }
+                        recovery().applied(outcome, session, group.sequence());
+                    }
                     transactionProbe.accept("row");
                     existing.setLong(1, session); existing.setLong(2, group.sequence()); existing.setInt(3, member);
                     try (var result = existing.executeQuery()) {
@@ -200,6 +210,11 @@ public final class SqliteStore implements HistoryStore {
                     incident.setLong(6, value.firstSequence()); incident.setLong(7, value.lastSequence()); incident.addBatch();
                 }
                 incident.executeBatch();
+            }
+            if (clean) {
+                try (var pause = connection.prepareStatement("UPDATE operations SET state='PAUSED',reason='Plugin shutdown; fresh review required' WHERE session_id=? AND state IN ('PREPARED','APPLYING')")) {
+                    pause.setLong(1, session); pause.executeUpdate();
+                }
             }
             try (var statement = connection.prepareStatement("UPDATE sessions SET last_sequence=max(last_sequence,?),clean=?,stopped_at=? WHERE id=?")) {
                 statement.setLong(1, groups.isEmpty() ? 0 : groups.getLast().sequence()); statement.setBoolean(2, clean);
@@ -225,6 +240,7 @@ public final class SqliteStore implements HistoryStore {
                 byte[] value = text.getBytes(StandardCharsets.UTF_8); out.writeInt(value.length); out.write(value);
             }
             out.writeInt(c.x()); out.writeInt(c.y()); out.writeInt(c.z()); out.writeInt(c.dataVersion());
+            if (group.outcome() != null) { out.writeUTF(group.outcome().operation().toString()); out.writeInt(group.outcome().step()); }
             return bytes.toByteArray();
         } catch (IOException impossible) { throw new AssertionError(impossible); }
     }
@@ -241,6 +257,22 @@ public final class SqliteStore implements HistoryStore {
     }
     private void execute(String sql) throws SQLException { try (var statement = connection.createStatement()) { statement.execute(sql); } }
     private void checkOwner() { if (Thread.currentThread() != owner) throw new IllegalStateException("SQLite accessed outside its owning worker"); }
+    @Override public io.github.d3vx3n0.chronicle.recovery.RecoveryRepository recovery() {
+        checkOwner(); return new io.github.d3vx3n0.chronicle.recovery.RecoveryRepository(connection, session, transactionProbe);
+    }
+    @Override public <T> T recoveryWork(io.github.d3vx3n0.chronicle.storage.HistoryWriter.RecoveryWork<T> work) throws SQLException {
+        checkOwner();
+        long deadline = System.nanoTime() + 2_000_000_000L;
+        var instructions = new java.util.concurrent.atomic.AtomicInteger();
+        progress(() -> instructions.incrementAndGet() > 10_000 || System.nanoTime() >= deadline);
+        try { return work.run(recovery()); }
+        finally { progress(() -> false); }
+    }
+    private void progress(java.util.function.BooleanSupplier abort) throws SQLException {
+        if (driverLoader == null) IsolatedDriver.progress(connection, abort);
+        else try { driverLoader.loadClass(IsolatedDriver.class.getName()).getMethod("progress", Connection.class, java.util.function.BooleanSupplier.class).invoke(null, connection, abort); }
+        catch (ReflectiveOperationException error) { throw new SQLException("Recovery SQL budget unavailable", error); }
+    }
     @Override public void close() throws SQLException, IOException {
         checkOwner();
         try { connection.close(); } finally {

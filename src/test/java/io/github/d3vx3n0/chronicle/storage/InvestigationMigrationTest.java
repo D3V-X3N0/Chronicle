@@ -43,7 +43,7 @@ class InvestigationMigrationTest {
     @Test void upgradesRetainedM1HistoryAndBothNamesWithoutRewritingPayload() throws Exception {
         Path db = directory.resolve("v1.db"); v1(db);
         try (var store = new SqliteStore(db, 100)) { assertEquals(1, store.previousUnclean()); }
-        assertEquals("2", SqliteStoreTest.query(db, "PRAGMA user_version"));
+        assertEquals("3", SqliteStoreTest.query(db, "PRAGMA user_version"));
         assertEquals("1|1|0011FF|PLAYER|PLAYER_ACTION|DIRECT", SqliteStoreTest.query(db,
                 "SELECT id||'|'||capture_sequence||'|'||hex(canonical_payload)||'|'||actor_kind||'|'||cause_kind||'|'||attribution_quality FROM changes"));
         assertEquals("2", SqliteStoreTest.query(db, "SELECT count(*) FROM actor_names"));

@@ -1,6 +1,6 @@
 # Storage and operations
 
-This evaluation alpha stores only [qualified stone/air player transitions](CAPTURE_QUALIFICATION.md). M2 provides [lookup and inspection](INVESTIGATION.md); rollback, restore, pruning and backup commands remain unavailable. Use disposable servers while evaluating it.
+The development snapshot stores [qualified stone/air player transitions](CAPTURE_QUALIFICATION.md) and operation-origin audit rows. M2 provides [lookup and inspection](INVESTIGATION.md); M3 adds [inert-block recovery](RECOVERY.md). Pruning and backup commands remain unavailable. The published evaluation alpha remains M1/M2 only. Use disposable servers while evaluating development builds.
 
 ## Database and lifecycle
 
@@ -11,6 +11,22 @@ One named writer owns its connection, native loading, schema checks, transaction
 `STARTING` precedes schema inspection and a durably unclean session. The worker verifies SQLite >=3.51.3, WAL, FULL synchronous mode, foreign keys and the configured busy timeout. It refuses unknown/newer schemas, changed migration checksums, partial/unversioned databases, corrupt input and unavailable storage. It never substitutes an empty database. `READY` enables capture; errors leave status at `FAILED`. The exact qualified Paper build/data version is checked before starting storage. Storage/reconciliation changes require restart; only presentation settings can reload.
 
 Schema 1 contains `schema_migrations`, `sessions`, `worlds`, `actors`, `capture_groups`, `changes` and `coverage_incidents`. Its SQL resource and recorded SHA-256 remain unchanged. The forward migration to schema 2 adds explicit actor kind/cause/attribution quality, observed player-name aliases and query indexes. Existing M1 rows have known direct-player attribution by their original contract; migration leaves their IDs, snapshots and canonical payload bytes intact. Empty-to-v2 and v1-to-v2 upgrades are transactional, with a separate checksum for each numbered SQL resource and `user_version=2`. Failure rolls back all pending columns, tables and ledger entries; unknown partial input is refused. Applied SQL must not be edited after release; future changes need new migrations. Stop and back up before evaluating an upgrade; M1 binaries cannot open a v2 database.
+
+Current schema **3** appends `operations`, `recovery_steps`, `recovery_effects` and
+operation/step links on `changes`. Empty/v1/v2-to-v3 upgrades retain the earlier
+migration resources and are transactional. Tests retain IDs, snapshots, aliases and
+canonical payloads, including failed-upgrade rollback/reopen. The published alpha
+cannot open schema 3; there is no downgrade command. Back up stopped-server data
+before upgrading.
+
+Recovery controls use one bounded slot on the existing writer, after ordered
+capture drains. Durable intents precede mutation. Actual outcomes, operation-origin
+history and effective restore claims commit atomically. The original rows and
+`recovery_eligible=0` capture flags are unchanged; recovery uses a separately
+qualified planner. Operation audit rows explicitly carry `SYSTEM / OPERATION / EXACT`
+attribution and an operation ID. The legacy identity table remains schema-compatible;
+its original kind column does not override per-change attribution. Synthetic
+operation identities are not claims of direct-player causation.
 
 World/player UUIDs are stable identities. A group is `(session_id, capture_sequence)`; members have unique indexes. AUTOINCREMENT session/history IDs are never reused. Timestamps are UTC milliseconds, separate from causal capture order. Rows retain action, coordinates/chunks, actor name, canonical before/after block data, codec/data versions and evidence source. Schema 2 records `PLAYER`, `PLAYER_ACTION`, `DIRECT`; unexpected attribution or snapshot versions are labelled by readers. Every row has `recovery_eligible=0`. Exact canonical payload comparison detects reuse of a key with different contents, including group size and metadata. A conflicting batch rolls back as a whole, including aliases. SQL, unchecked and native exceptions trigger explicit rollback; auto-commit is restored only after commit or successful rollback, so resetting the connection cannot commit a partial group.
 

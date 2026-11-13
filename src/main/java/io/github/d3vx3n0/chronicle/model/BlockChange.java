@@ -10,7 +10,7 @@ public record BlockChange(UUID world, String worldName, int x, int y, int z, UUI
         Objects.requireNonNull(world); Objects.requireNonNull(actor);
         bounded(worldName, 128); bounded(actorName, 64); bounded(before, 16_384); bounded(after, 16_384);
         if (!action.equals("PLACE") && !action.equals("BREAK")) throw new IllegalArgumentException("Unknown action");
-        if (!evidence.equals("NEXT_OBSERVATION") && !evidence.equals("LATER_SAMPLE")) throw new IllegalArgumentException("Unknown evidence");
+        if (!evidence.equals("NEXT_OBSERVATION") && !evidence.equals("LATER_SAMPLE") && !evidence.equals("RECOVERY")) throw new IllegalArgumentException("Unknown evidence");
         if (before.equals(after) || dataVersion < 1) throw new IllegalArgumentException("No-op or missing data version");
         if (!(before.equals(action.equals("PLACE") ? "minecraft:air" : "minecraft:stone")
                 && after.equals(action.equals("PLACE") ? "minecraft:stone" : "minecraft:air"))) {

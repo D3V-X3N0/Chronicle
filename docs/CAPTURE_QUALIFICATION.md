@@ -31,6 +31,11 @@ The initial passing repeated-action fixture produced both callbacks at tick 191.
 
 The M1 eligible set is exactly `minecraft:air -> minecraft:stone` placement and `minecraft:stone -> minecraft:air` breaking, with direct player UUIDs and complete canonical block-data strings for these two states (codec 1, Minecraft data version captured from the runtime). Each accepted action has a distinct ordered capture sequence. The same listener owns ordinary and multi-place dispatch; multi-place is unsupported, with no partial successful group. All history remains ineligible for recovery.
 
+That recovery exclusion describes the published M1/M2 capture flag and release.
+M3 preserves those rows and qualifies a separate inert-block application path with
+additional history, neighbourhood, journal and restart checks. See [RECOVERY.md](RECOVERY.md)
+and [M3 evidence](M3_PLAN.md); capture qualification alone never grants reversibility.
+
 Observations resolve in capture order. A matching next pre-state or bounded later sample corroborates the candidate transition. An unchanged observed state is a no-op; a different, unavailable or expired state creates an explicit coverage gap. Pending observations have a hard count limit and two-tick expiry, with at most 128 later samples per tick. Capture and reconciliation use only the owning server thread and never load chunks. Storage admission has separate record/byte limits, including in-flight work.
 
 This is a qualified public-event observation contract, not a universal world transaction log. A plugin that changes events after MONITOR, directly changes blocks without events, or changes a block away and back between observations can defeat attribution/finality. The test setup contains only Chronicle and its controlled fixture. Containers, block entities, multi-block structures, physics, fluids and all other materials are unsupported; unsupported actions produce aggregate global coverage incidents. Missing events cannot be detected universally. Neither complete server coverage nor reversibility is claimed.

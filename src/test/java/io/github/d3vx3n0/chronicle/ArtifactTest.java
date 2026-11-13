@@ -24,7 +24,7 @@ class ArtifactTest {
             assertFalse(version.contains("${"));
             assertEquals(jar.getManifest().getMainAttributes().getValue("Implementation-Version"), version);
             assertEquals("26.3", descriptor.getString("api-version"));
-            for (String permission : java.util.List.of("status", "inspect", "lookup", "reload"))
+            for (String permission : java.util.List.of("status", "inspect", "lookup", "reload", "rollback", "restore"))
                 assertEquals(false, descriptor.get("permissions.chronicle." + permission + ".default"));
             assertFalse(descriptor.contains("commands.chronicle.permission"),
                     "Executor must enforce player permissions without blocking the trusted console in dispatch");

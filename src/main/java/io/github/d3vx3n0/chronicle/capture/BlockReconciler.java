@@ -48,7 +48,7 @@ public final class BlockReconciler {
         if (observation.action().equals("BREAK") && observation.before().equals(AIR)) return;
         if (multiPlace) {
             // Unqualified multi-target action may overlap a pending target other than the primary block.
-            abandon(); gaps.accept(Coverage.UNSUPPORTED, id); return;
+            abandon(false); gaps.accept(Coverage.UNSUPPORTED, id); return;
         }
         boolean eligible = observation.action().equals("PLACE") && observation.before().equals(AIR) && observation.proposed().equals(STONE)
                 || observation.action().equals("BREAK") && observation.before().equals(STONE);
@@ -62,6 +62,7 @@ public final class BlockReconciler {
         drain();
         while (budget-- > 0 && !ordered.isEmpty()) {
             Pending pending = ordered.getFirst();
+            if (pending.observation == null) break; // Reserved recovery slot: later capture cannot overtake it.
             if (pending.observation.tick() == tick) break;
             // Never load chunks; absent/unloaded/expired evidence is explicit uncertainty.
             String state = tick - pending.observation.tick() > 2 ? null : world.apply(pending.observation.position());
@@ -90,8 +91,26 @@ public final class BlockReconciler {
         }
     }
     public void abandon() {
-        for (Pending pending : ordered) if (!pending.resolved) resolve(pending, null, "LATER_SAMPLE");
+        abandon(true);
+    }
+    private void abandon(boolean includeSynthetic) {
+        for (Pending pending : ordered) if (!pending.resolved) {
+            if (pending.observation == null) {
+                if (includeSynthetic) { pending.resolved = true; gaps.accept(Coverage.AMBIGUOUS, pending.sequence); }
+            }
+            else resolve(pending, null, "LATER_SAMPLE");
+        }
         drain();
+    }
+    public long reserveSynthetic() {
+        if (!ordered.isEmpty()) throw new IllegalStateException("Recovery needs a resolved capture barrier");
+        long id = ++sequence; ordered.addLast(new Pending(id, null)); return id;
+    }
+    public void finishSynthetic(long id, CaptureGroup group) {
+        var pending = ordered.getFirst();
+        if (pending.sequence != id || pending.observation != null || group != null && group.sequence() != id)
+            throw new IllegalStateException("Invalid reserved capture slot");
+        pending.group = group; pending.resolved = true; drain();
     }
     public int pending() { return ordered.size(); }
     public long observedSequence() { return sequence; }

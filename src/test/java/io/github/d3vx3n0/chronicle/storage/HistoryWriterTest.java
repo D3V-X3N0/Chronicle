@@ -39,6 +39,19 @@ class HistoryWriterTest {
         assertEquals(0, reopened.status().previousUnclean()); assertTrue(reopened.stop());
         assertEquals("4", SqliteStoreTest.query(db, "SELECT count(*) FROM changes"));
     }
+    @Test void recoveryControlWaitsForCaptureAndCountsUndeliveredCompletionAgainstOneSlot() throws Exception {
+        Path db = directory.resolve("controls.db"); var writer = writer(db, settings(10, 100_000, 3000));
+        try {
+            await(() -> writer.status().state() == HistoryWriter.State.READY);
+            var group = SqliteStoreTest.group(1, 1); assertTrue(writer.offer(group));
+            var c = group.changes().getFirst();
+            var task = writer.control(r -> r.latest(new io.github.d3vx3n0.chronicle.capture.BlockReconciler.Position(c.world(), c.x(), c.y(), c.z())));
+            assertThrows(IllegalArgumentException.class, () -> writer.control(r -> 0));
+            await(task::done); assertTrue(task.result() > 0); assertEquals(1, writer.status().committed());
+            assertThrows(IllegalArgumentException.class, () -> writer.control(r -> 0));
+            writer.release(task); var next = writer.control(r -> 7); await(next::done); assertEquals(7, next.result()); writer.release(next);
+        } finally { assertTrue(writer.stop()); }
+    }
     @Test void inFlightCountsBytesAndWholeGroupAdmissionStayBounded() throws Exception {
         for (boolean byteLimit : List.of(false, true)) {
             Path db = directory.resolve(byteLimit + ".db");
