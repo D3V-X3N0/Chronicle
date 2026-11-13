@@ -45,8 +45,9 @@ final class PacketFixture implements Listener {
             plugin.getLogger().info("RECOVERY_PAUSE_REQUESTED"); return true;
         }
         if (args[0].equals("recovery-diverge")) {
-            Objects.requireNonNull(Bukkit.getPlayerExact("ChronicleTest")).getWorld().getBlockAt(0, 80, 0).setType(Material.DIRT, false);
-            plugin.getLogger().info("RECOVERY_DIVERGED dirt"); return true;
+            Material target = args[1].equals("air") ? Material.AIR : Material.DIRT;
+            Objects.requireNonNull(Bukkit.getPlayerExact("ChronicleTest")).getWorld().getBlockAt(0, 80, 0).setType(target, false);
+            plugin.getLogger().info("RECOVERY_DIVERGED " + args[1]); return true;
         }
         if (args[0].equals("recovery-crash")) {
             try {

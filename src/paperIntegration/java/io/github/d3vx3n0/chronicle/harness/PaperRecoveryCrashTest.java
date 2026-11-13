@@ -83,6 +83,12 @@ final class PaperRecoveryCrashTest {
                 }
                 PaperPacketTest.response(process, restart, "chroniclefixture recovery-world " + expected, "RECOVERY_WORLD " + expected);
                 if (boundary.equals("after-intent")) {
+                    // Equality after an unrelated mutation must never promote an unknown intent to applied.
+                    PaperPacketTest.response(process, restart, "chroniclefixture recovery-diverge air", "RECOVERY_DIVERGED air");
+                    reviewed = PaperPacketTest.response(process, restart, "chronicle rollback review " + operation, "no mutation resumed.");
+                    require(reviewed.contains(" UNKNOWN live=DESIRED"), "desired bytes do not prove an uncertain effect");
+                    PaperPacketTest.response(process, restart, "chronicle restore preview " + operation, "Review/finish the source operation before restoration");
+                    PaperPacketTest.response(process, restart, "chroniclefixture recovery-world air", "RECOVERY_WORLD air");
                     PaperPacketTest.response(process, restart, "chroniclefixture recovery-diverge dirt", "RECOVERY_DIVERGED dirt");
                     reviewed = PaperPacketTest.response(process, restart, "chronicle rollback review " + operation, "no mutation resumed.");
                     require(reviewed.contains("live=CONFLICT"), "unrelated persisted/live state is explicit conflict");
